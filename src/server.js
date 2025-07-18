@@ -12,7 +12,7 @@ connectDB();
 app.use(cors());
 app.use(express.json());
 app.use('/public', express.static('invoices'));
-
+app.use(express.static('public'));
 app.use('/api/auth', authRoutes);
 app.use('/api',      orderRoutes);
 
