@@ -1,28 +1,37 @@
-// Base da sua API
+// Defina aqui a URL do seu back‑end
 const API_BASE = 'https://phillaseanbackend.onrender.com';
 const API      = API_BASE + '/api';
 
-// Fetch genérico com JWT
+// Utilitário de fetch com JWT
 async function apiFetch(path, opts = {}) {
   const token = localStorage.getItem('token');
   const headers = { 'Content-Type': 'application/json', ...opts.headers };
   if (token) headers.Authorization = 'Bearer ' + token;
-  const res  = await fetch(API + path, { ...opts, headers });
+  const res = await fetch(API + path, { ...opts, headers });
   const data = await res.json();
   if (!res.ok) throw new Error(data.message || res.statusText);
   return data;
 }
 
-// Atualiza Navbar conforme auth
+// Atualiza Navbar conforme auth e role
 function updateNav() {
   const user = JSON.parse(localStorage.getItem('user'));
   const nav  = document.getElementById('nav-list');
+
   if (user) {
-    nav.innerHTML = `
+    let html = `
       <li>Olá, ${user.name}</li>
       <li><a href="client-portal.html?userId=${user._id}">Portal do Cliente</a></li>
-      <li><button id="btn-logout">Logout</button></li>
     `;
+
+    // Se for admin, adicionar link
+    if (user.role === 'admin') {
+      html += `<li><a href="admin-dashboard.html">Admin Dashboard</a></li>`;
+    }
+
+    html += `<li><button id="btn-logout">Logout</button></li>`;
+    nav.innerHTML = html;
+
     document.getElementById('btn-logout').onclick = () => {
       localStorage.clear();
       updateNav();
@@ -42,20 +51,20 @@ function openAuth(tab) {
   document.getElementById('auth-modal').classList.remove('hidden');
   document.getElementById('tab-login').classList.toggle('active',    tab==='login');
   document.getElementById('tab-register').classList.toggle('active', tab==='register');
-  document.getElementById('form-login').classList.toggle('active',   tab==='login');
-  document.getElementById('form-register').classList.toggle('active',tab==='register');
+  document.getElementById('form-login').classList.toggle('active',    tab==='login');
+  document.getElementById('form-register').classList.toggle('active', tab==='register');
 }
 
-// Fecha modal
+// Fecha modal de auth
 document.getElementById('auth-close').onclick = () => {
   document.getElementById('auth-modal').classList.add('hidden');
 };
 
-// Troca abas manualmente
+// Abas manualmente
 document.getElementById('tab-login').onclick    = () => openAuth('login');
 document.getElementById('tab-register').onclick = () => openAuth('register');
 
-// **Login**
+// Login
 document.getElementById('form-login').onsubmit = async e => {
   e.preventDefault();
   try {
@@ -74,7 +83,7 @@ document.getElementById('form-login').onsubmit = async e => {
   }
 };
 
-// **Registro**
+// Registro
 document.getElementById('form-register').onsubmit = async e => {
   e.preventDefault();
   try {
@@ -85,21 +94,31 @@ document.getElementById('form-register').onsubmit = async e => {
       method: 'POST',
       body:   JSON.stringify({ name, email, password: pwd })
     });
-    alert('Registro ok! Agora faça login.');
+    alert('Registro concluído! Agora faça login.');
     openAuth('login');
   } catch (err) {
     alert(err.message);
   }
 };
 
-// **Solicitar via cartões** (sem formulário extra)
+// Solicitação via cards (anônimos ou logados)
 document.querySelectorAll('.request-btn').forEach(btn => {
   btn.onclick = async () => {
     try {
       const service = btn.dataset.service;
-      const name    = prompt('Seu nome completo:');
-      const email   = prompt('Seu email:');
-      if (!name || !email) throw new Error('Nome e email são obrigatórios.');
+      let name, email;
+
+      // Se estiver logado, usar dados do user
+      const user = JSON.parse(localStorage.getItem('user'));
+      if (user) {
+        name  = user.name;
+        email = user.email;
+      } else {
+        name  = prompt('Seu nome completo:');
+        email = prompt('Seu email:');
+        if (!name || !email) throw new Error('Nome e email obrigatórios.');
+      }
+
       await apiFetch('/orders', {
         method: 'POST',
         body:   JSON.stringify({ name, email, service })
@@ -111,14 +130,16 @@ document.querySelectorAll('.request-btn').forEach(btn => {
   };
 });
 
-// **Formulário completo de pedido**
+// Formulário completo de pedido
 document.getElementById('order-form').onsubmit = async e => {
   e.preventDefault();
   try {
-    const name    = e.target['order-name'].value.trim();
-    const email   = e.target['order-email'].value.trim();
+    const user    = JSON.parse(localStorage.getItem('user'));
+    const name    = user ? user.name : e.target['order-name'].value.trim();
+    const email   = user ? user.email: e.target['order-email'].value.trim();
     const service = e.target['order-service'].value;
     const details = e.target['order-details'].value.trim();
+
     await apiFetch('/orders', {
       method: 'POST',
       body:   JSON.stringify({ name, email, service, details })
@@ -130,5 +151,5 @@ document.getElementById('order-form').onsubmit = async e => {
   }
 };
 
-// Inicialização
+// Inicializa a navbar
 updateNav();
