@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>PHIL ASEAN PROVIDER & LOGISTICS</title>
+  <link rel="stylesheet" href="style.css">
+  <script defer src="script.js"></script>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <h1 class="logo">PHIL ASEAN</h1>
+      <nav>
+        <ul id="nav-list">
+          <li><button id="btn-login-nav">Login</button></li>
+          <li><button id="btn-register-nav">Registrar</button></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <div id="auth-modal" class="modal hidden">
+    <div class="modal-content">
+      <button class="close-btn" id="auth-close">&times;</button>
+      <div class="tabs">
+        <button id="tab-login" class="active">Login</button>
+        <button id="tab-register">Registrar</button>
+      </div>
+      <form id="form-login" class="form active">
+        <h2>Login</h2>
+        <input type="email" id="login-email" placeholder="Email" required>
+        <input type="password" id="login-password" placeholder="Senha" required>
+        <button type="submit">Entrar</button>
+      </form>
+      <form id="form-register" class="form">
+        <h2>Registrar</h2>
+        <input type="text" id="reg-name" placeholder="Nome Completo" required>
+        <input type="email" id="reg-email" placeholder="Email" required>
+        <input type="password" id="reg-password" placeholder="Senha" required>
+        <button type="submit">Registrar</button>
+      </form>
+    </div>
+  </div>
+
+  <section class="hero">
+    <h2>Serviços Marítimos em Moçambique</h2>
+    <p>Parceiro confiável em logística e provisões</p>
+  </section>
+
+  <section class="services container">
+    <div class="card">
+      <h3>Tubos Hidráulicos</h3>
+      <button class="request-btn" data-service="tubes">Solicitar</button>
+    </div>
+    <div class="card">
+      <h3>Água Potável</h3>
+      <button class="request-btn" data-service="water">Solicitar</button>
+    </div>
+    <div class="card">
+      <h3>Provisões</h3>
+      <button class="request-btn" data-service="provisions">Solicitar</button>
+    </div>
+    <div class="card">
+      <h3>Lubrificantes</h3>
+      <button class="request-btn" data-service="lubricants">Solicitar</button>
+    </div>
+  </section>
+
+  <section class="order container">
+    <h2>Solicitar Serviço</h2>
+    <form id="order-form">
+      <input type="text" id="order-name" placeholder="Nome completo" required>
+      <input type="email" id="order-email" placeholder="Email" required>
+      <select id="order-service" required>
+        <option value="">Selecione o serviço</option>
+        <option value="tubes">Tubos Hidráulicos</option>
+        <option value="water">Água Potável</option>
+        <option value="provisions">Provisões</option>
+        <option value="lubricants">Lubrificantes</option>
+      </select>
+      <textarea id="order-details" placeholder="Detalhes adicionais"></textarea>
+      <button type="submit">Enviar Solicitação</button>
+    </form>
+    <div id="order-msg" class="message"></div>
+  </section>
+</body>
+</html>
