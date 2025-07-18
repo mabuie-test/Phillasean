@@ -15,3 +15,7 @@ input,select,textarea,button { width:100%;padding:.5rem;margin:.5rem 0 }
 .form.active { display:block }
 .close-btn { position:absolute;top:.5rem;right:.5rem;border:none;background:none;font-size:1.5rem;cursor:pointer }
 .message { margin-top:1rem;color:green }
+.modal.hidden { display: none; }
+.modal { /* idêntico aos outros modais */ }
+.modal-content { max-width: 400px; margin: auto; /* etc */ }
+.close-btn { position: absolute; top:10px; right:15px; /* etc */ }
