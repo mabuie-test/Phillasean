@@ -13,26 +13,19 @@ connectDB();
 app.use(cors());
 app.use(express.json());
 
-// 1) Serve estáticos (front‑end + PDFs)
-//    Ajuste: sobe um nível (..), pois __dirname é src/
+// Serve somente os PDFs gerados (invoices)
+// A pasta invoices está na raiz do repositório, ao lado de src/
 app.use(
   '/invoices',
   express.static(path.join(__dirname, '..', 'invoices'))
 );
-app.use(
-  express.static(path.join(__dirname, '..', 'public'))
-);
 
-// 2) API
+// Rotas da API
 app.use('/api/auth', authRoutes);
-app.use('/api',       orderRoutes);
+app.use('/api',      orderRoutes);
 
-// 3) SPA fallback: qualquer outra rota envia o index.html do front‑end
-app.get('*', (req, res) => {
-  res.sendFile(
-    path.join(__dirname, '..', 'public', 'index.html')
-  );
-});
+// Não tentamos servir o public/index.html aqui!
+// O front‑end será servido como Static Site no Render.
 
 app.listen(process.env.PORT, () => {
   console.log(`API rodando na porta ${process.env.PORT}`);
