@@ -1,33 +1,50 @@
-const Order    = require('../models/Order');
-const Invoice  = require('../models/Invoice');
-const pdfGen   = require('../utils/pdfGenerator');
-const mailer   = require('../config/mailer');
+const Order = require('../models/order');
 
-exports.createOrder = async (req, res) => {
-  // dados básicos
-  const payload = {
-    userId: req.user?.id || null,
-    name:   req.body.name,
-    email:  req.body.email,
-    service:req.body.service,
-    details:req.body.details || {}
-  };
-  const order = await new Order(payload).save();
+// POST /api/orders
+async function createOrder(req, res) {
+  try {
+    const { service, details } = req.body;
+    const userId = req.user.id;            // vindo do middleware auth
+    const name   = req.body.name || req.user.name;
+    const email  = req.body.email || req.user.email;
 
-  // gera PDF
-  const { pdfPath } = await pdfGen(order);
+    const order = await Order.create({
+      userId,
+      name,
+      email,
+      service,
+      details
+    });
 
-  // salva invoice
-  const invoice = await new Invoice({ orderId: order._id, pdfPath }).save();
+    // aqui você pode disparar o envio de e‑mail e gerar fatura...
+    
+    res.status(201).json({ success: true, order });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Erro ao criar pedido.' });
+  }
+}
 
-  // envia email
-  await mailer.sendMail({
-    from: process.env.EMAIL_USER,
-    to:   process.env.EMAIL_USER,
-    subject: `Novo Pedido: ${order.service}`,
-    text:    `Pedido ${order.service} de ${order.name}`,
-    attachments: [{ path: pdfPath }]
-  });
+// GET /api/orders?userId=…
+async function getOrders(req, res) {
+  try {
+    const userId = req.query.userId;
+    if (!userId) {
+      return res.status(400).json({ success: false, message: 'Falta userId.' });
+    }
+    // opcional: garanta que req.user.id === userId para não permitir vazamento
+    if (req.user.id !== userId) {
+      return res.status(403).json({ success: false, message: 'Acesso negado.' });
+    }
 
-  res.json({ success: true, message: 'Pedido criado', order, invoice });
-};
+    const orders = await Order.find({ userId })
+                              .sort({ createdAt: -1 })
+                              .lean();
+    res.json(orders);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Erro ao buscar pedidos.' });
+  }
+}
+
+module.exports = { createOrder, getOrders };
