@@ -1,6 +1,7 @@
 require('dotenv').config();
-const express = require('express');
-const cors    = require('cors');
+const express   = require('express');
+const cors      = require('cors');
+const path      = require('path');
 const connectDB = require('./config/db');
 
 const authRoutes  = require('./routes/auth.routes');
@@ -11,10 +12,19 @@ connectDB();
 
 app.use(cors());
 app.use(express.json());
-app.use('/public', express.static('invoices'));
-app.use(express.static('public'));
+
+// 1) Serve estáticos (front‑end + PDFs)
+app.use('/invoices', express.static(path.join(__dirname, 'invoices')));
+app.use(express.static(path.join(__dirname, 'public')));
+
+// 2) API
 app.use('/api/auth', authRoutes);
-app.use('/api',      orderRoutes);
+app.use('/api',       orderRoutes);
+
+// 3) Para qualquer outra rota, devolve o index.html (SPA fallback)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/index.html'));
+});
 
 app.listen(process.env.PORT, () => {
   console.log(`API rodando na porta ${process.env.PORT}`);
