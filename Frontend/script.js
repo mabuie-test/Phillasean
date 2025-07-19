@@ -24,7 +24,7 @@ async function api(path, opts = {}) {
   return await res.json();
 }
 
-// Registro
+// Registro de cliente
 const registerForm = document.getElementById('registerForm');
 if (registerForm) {
   registerForm.addEventListener('submit', async e => {
@@ -38,6 +38,7 @@ if (registerForm) {
     const json = await api('/api/auth/register', { method: 'POST', body });
     if (json.token) {
       localStorage.setItem(authTokenKey, json.token);
+      // sempre cliente after register
       window.location.href = 'reserva.html';
     } else {
       alert(json.error || 'Erro no registro');
@@ -45,7 +46,7 @@ if (registerForm) {
   });
 }
 
-// Login
+// Login (cliente ou admin)
 const loginForm = document.getElementById('loginForm');
 if (loginForm) {
   loginForm.addEventListener('submit', async e => {
@@ -58,14 +59,19 @@ if (loginForm) {
     const json = await api('/api/auth/login', { method: 'POST', body });
     if (json.token) {
       localStorage.setItem(authTokenKey, json.token);
-      window.location.href = 'reserva.html';
+      // redireciona conforme o papel do usuário
+      if (json.role === 'admin') {
+        window.location.href = 'admin.html';
+      } else {
+        window.location.href = 'reserva.html';
+      }
     } else {
       alert(json.error || 'Erro no login');
     }
   });
 }
 
-// Envio de pedido
+// Envio de pedido (só para clientes)
 const orderForm = document.getElementById('orderForm');
 if (orderForm) {
   orderForm.addEventListener('submit', async e => {
