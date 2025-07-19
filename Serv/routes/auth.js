@@ -14,10 +14,9 @@ router.post('/register', async (req, res) => {
     return res.status(409).json({ error: 'Email já existe' });
 
   const hash = await bcrypt.hash(password, 10);
-  await User.create({ name, email, password: hash, role: 'client' });
-  const user = await User.findOne({ email }); // para pegar o role
+  const user = await User.create({ name, email, password: hash, role: 'client' });
   const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
-  res.json({ token });
+  res.json({ token, role: user.role });
 });
 
 // Login (cliente ou admin)
@@ -28,7 +27,7 @@ router.post('/login', async (req, res) => {
     return res.status(401).json({ error: 'Credenciais inválidas' });
 
   const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: '7d' });
-  res.json({ token });
+  res.json({ token, role: user.role });
 });
 
 // Registro de admin (segredo obrigatório)
