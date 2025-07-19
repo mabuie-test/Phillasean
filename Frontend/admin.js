@@ -1,10 +1,13 @@
 // admin.js
 
+console.log('⚙️ admin.js carregado');
+
 const API_BASE     = 'https://phillaseanbackend.onrender.com';
 const authTokenKey = 'phil_token';
 
 // Helper para chamadas à API com tratamento de 401
 async function api(path, opts = {}) {
+  console.log(`→ api: ${opts.method||'GET'} ${path}`, opts.body||'');
   const headers = opts.headers || {};
   const token = localStorage.getItem(authTokenKey);
   if (token) headers['Authorization'] = 'Bearer ' + token;
@@ -17,14 +20,19 @@ async function api(path, opts = {}) {
   });
 
   if (res.status === 401) {
+    console.warn('← api: 401 Não autorizado');
     window.location.href = 'login.html';
     return;
   }
-  return await res.json();
+  const data = await res.json();
+  console.log('← api resposta:', data);
+  return data;
 }
 
 // Logout
-document.getElementById('logoutBtn').addEventListener('click', () => {
+const logoutBtn = document.getElementById('logoutBtn');
+logoutBtn.addEventListener('click', () => {
+  console.log('Logout clicado');
   localStorage.removeItem(authTokenKey);
   window.location.href = 'login.html';
 });
@@ -35,10 +43,18 @@ const searchInput  = document.getElementById('searchInput');
 const statusFilter = document.getElementById('statusFilter');
 const refreshBtn   = document.getElementById('refreshBtn');
 
+if (!tbody || !searchInput || !statusFilter || !refreshBtn) {
+  console.error('Um ou mais elementos não encontrados:', { tbody, searchInput, statusFilter, refreshBtn });
+}
+
 // Carrega e renderiza pedidos
 async function loadAdminOrders() {
+  console.log('Carregando pedidos de admin...');
   const orders = await api('/api/admin/orders', { method: 'GET' });
-  if (!orders) return;
+  if (!Array.isArray(orders)) {
+    console.error('loadAdminOrders: orders não é array', orders);
+    return;
+  }
 
   // Filtrar por status
   let filtered = statusFilter.value
@@ -49,12 +65,14 @@ async function loadAdminOrders() {
   const q = searchInput.value.trim().toLowerCase();
   if (q) {
     filtered = filtered.filter(o =>
-      o.client.name.toLowerCase().includes(q) ||
-      o.client.email.toLowerCase().includes(q) ||
-      (o.details.service || '').toLowerCase().includes(q) ||
-      (o.reference || '').toLowerCase().includes(q)
+      (o.client.name || '').toLowerCase().includes(q) ||
+      (o.client.email || '').toLowerCase().includes(q) ||
+      ((o.details?.service || '')).toLowerCase().includes(q) ||
+      ((o.reference || '')).toLowerCase().includes(q)
     );
   }
+
+  console.log('Pedidos após filtro:', filtered);
 
   // Montar linhas da tabela
   tbody.innerHTML = '';
@@ -66,8 +84,8 @@ async function loadAdminOrders() {
     tr.innerHTML = `
       <td>${o._id}</td>
       <td>${o.client.name}<br><small>${o.client.email}</small></td>
-      <td>${o.details.service}</td>
-      <td>${o.details.quantity}</td>
+      <td>${o.details?.service || '–'}</td>
+      <td>${o.details?.quantity || '–'}</td>
       <td class="status-cell ${o.status}">${o.status.replace('_', ' ')}</td>
       <td><ul class="history-list">${histHtml}</ul></td>
       <td>
@@ -92,13 +110,15 @@ async function loadAdminOrders() {
 
 // Anexa listeners aos botões depois de renderizar
 function attachActionListeners() {
+  console.log('Anexando listeners...');
   // Atualizar status
   tbody.querySelectorAll('.btn-update').forEach(btn => {
     btn.onclick = async () => {
       const orderId = btn.dataset.orderId;
       const select  = tbody.querySelector(`.status-select[data-order-id="${orderId}"]`);
       const status  = select.value;
-      const resp    = await api(`/api/admin/orders/${orderId}`, {
+      console.log(`Atualizando status do pedido ${orderId} para ${status}`);
+      const resp = await api(`/api/admin/orders/${orderId}`, {
         method: 'PUT',
         body: { status }
       });
@@ -116,11 +136,13 @@ function attachActionListeners() {
     btn.onclick = async () => {
       const orderId = btn.dataset.orderId;
       const ref     = btn.dataset.ref;
-      const res     = await fetch(`${API_BASE}/api/orders/${orderId}/invoice`, {
+      console.log(`Baixando factura ${ref} (order ${orderId})`);
+      const res = await fetch(`${API_BASE}/api/orders/${orderId}/invoice`, {
         headers: { 'Authorization': 'Bearer ' + localStorage.getItem(authTokenKey) }
       });
       if (!res.ok) {
         const err = await res.json();
+        console.error('Erro no fetch da factura:', err);
         return alert(err.error || 'Erro ao baixar factura');
       }
       const blob = await res.blob();
@@ -136,7 +158,7 @@ function attachActionListeners() {
   });
 }
 
-// Dispara reload ao mudar filtros ou buscar
+// Eventos de filtro e busca
 searchInput.addEventListener('input', loadAdminOrders);
 statusFilter.addEventListener('change', loadAdminOrders);
 refreshBtn.addEventListener('click', loadAdminOrders);
