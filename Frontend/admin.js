@@ -2,8 +2,8 @@
 
 console.log('⚙️ admin.js carregado');
 
-const API_BASE     = 'https://phillaseanbackend.onrender.com';
-const authTokenKey = 'phil_token';
+const API_BASE       = 'https://phillaseanbackend.onrender.com';
+const authTokenKey   = 'phil_token';
 
 // Helper para chamadas à API com tratamento de 401
 async function api(path, opts = {}) {
@@ -30,24 +30,25 @@ async function api(path, opts = {}) {
 }
 
 // Logout
-const logoutBtn = document.getElementById('logoutBtn');
-logoutBtn.addEventListener('click', () => {
+document.getElementById('logoutBtn').addEventListener('click', () => {
   console.log('Logout clicado');
   localStorage.removeItem(authTokenKey);
   window.location.href = 'login.html';
 });
 
-// Elementos da interface
+// Elementos da interface de pedidos
 const tbody        = document.querySelector('#adminTable tbody');
 const searchInput  = document.getElementById('searchInput');
 const statusFilter = document.getElementById('statusFilter');
 const refreshBtn   = document.getElementById('refreshBtn');
 
-if (!tbody || !searchInput || !statusFilter || !refreshBtn) {
-  console.error('Um ou mais elementos não encontrados:', { tbody, searchInput, statusFilter, refreshBtn });
-}
+// Elementos da interface de gestão de admins
+const createAdminForm = document.getElementById('createAdminForm');
+const adminList       = document.getElementById('adminList');
 
-// Carrega e renderiza pedidos
+// --------------------------
+// Funções de pedidos
+// --------------------------
 async function loadAdminOrders() {
   console.log('Carregando pedidos de admin...');
   const orders = await api('/api/admin/orders', { method: 'GET' });
@@ -67,8 +68,8 @@ async function loadAdminOrders() {
     filtered = filtered.filter(o =>
       (o.client.name || '').toLowerCase().includes(q) ||
       (o.client.email || '').toLowerCase().includes(q) ||
-      ((o.details?.service || '')).toLowerCase().includes(q) ||
-      ((o.reference || '')).toLowerCase().includes(q)
+      (o.details?.service || '').toLowerCase().includes(q) ||
+      (o.reference || '').toLowerCase().includes(q)
     );
   }
 
@@ -105,12 +106,11 @@ async function loadAdminOrders() {
     tbody.appendChild(tr);
   });
 
-  attachActionListeners();
+  attachOrderListeners();
 }
 
-// Anexa listeners aos botões depois de renderizar
-function attachActionListeners() {
-  console.log('Anexando listeners...');
+function attachOrderListeners() {
+  console.log('Anexando listeners de pedidos...');
   // Atualizar status
   tbody.querySelectorAll('.btn-update').forEach(btn => {
     btn.onclick = async () => {
@@ -158,10 +158,73 @@ function attachActionListeners() {
   });
 }
 
-// Eventos de filtro e busca
+// --------------------------
+// Funções de gestão de Admins
+// --------------------------
+async function loadAdmins() {
+  console.log('Carregando lista de administradores...');
+  const admins = await api('/api/admin/users', { method: 'GET' });
+  if (!Array.isArray(admins)) {
+    console.error('loadAdmins: resposta inválida', admins);
+    return;
+  }
+  adminList.innerHTML = '';
+  admins.forEach(a => {
+    const li = document.createElement('li');
+    li.innerHTML = `
+      ${a.name} (${a.email})
+      <button class="btn btn-delete-admin" data-admin-id="${a._id}">Excluir</button>
+    `;
+    adminList.appendChild(li);
+  });
+  attachAdminListeners();
+}
+
+function attachAdminListeners() {
+  console.log('Anexando listeners de admins...');
+  adminList.querySelectorAll('.btn-delete-admin').forEach(btn => {
+    btn.onclick = async () => {
+      const adminId = btn.dataset.adminId;
+      if (!confirm('Remover este administrador?')) return;
+      console.log(`Removendo admin ${adminId}`);
+      const resp = await api(`/api/admin/users/${adminId}`, { method: 'DELETE' });
+      if (resp?.success) {
+        alert('Administrador removido');
+        loadAdmins();
+      } else {
+        alert(resp?.error || 'Erro ao remover administrador');
+      }
+    };
+  });
+}
+
+createAdminForm.addEventListener('submit', async e => {
+  e.preventDefault();
+  const f = new FormData(createAdminForm);
+  const body = {
+    name:     f.get('name'),
+    email:    f.get('email'),
+    password: f.get('password'),
+    secret:   f.get('secret')
+  };
+  console.log('Criando novo admin:', body);
+  const resp = await api('/api/admin/users', { method: 'POST', body });
+  if (resp?.success) {
+    alert('Administrador criado');
+    createAdminForm.reset();
+    loadAdmins();
+  } else {
+    alert(resp?.error || 'Erro ao criar administrador');
+  }
+});
+
+// Eventos de filtro e busca para pedidos
 searchInput.addEventListener('input', loadAdminOrders);
 statusFilter.addEventListener('change', loadAdminOrders);
 refreshBtn.addEventListener('click', loadAdminOrders);
 
 // Inicialização
-loadAdminOrders();
+(async () => {
+  await loadAdminOrders();
+  await loadAdmins();
+})();
