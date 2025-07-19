@@ -45,9 +45,13 @@ const transporter = nodemailer.createTransport({
   }
 });
 transporter.verify(err => {
-  if (err) console.error('SMTP config inválida:', err);
-  else     console.log('SMTP pronto para enviar emails');
+  if (err) {
+    console.error('SMTP config inválida:', err.message);
+  } else {
+    console.log('SMTP pronto para enviar emails');
+  }
 });
+
 
 // POST /api/orders → criar pedido
 router.post('/', auth, async (req, res) => {
