@@ -112,7 +112,7 @@ if (logoutBtn) {
   });
 }
 
-// --- Histórico de Pedidos ---
+// --- Histórico de Pedidos com botão de download autorizado ---
 async function loadOrderHistory() {
   const history = await api('/api/orders', { method: 'GET' });
   if (!history || history.error) return;
@@ -129,11 +129,37 @@ async function loadOrderHistory() {
       <td>${o.status}</td>
       <td>${
         o.reference
-          ? `<a href="${API_BASE}/api/orders/${o.id}/invoice" target="_blank">Baixar</a>`
+          ? `<button class="btn download-btn" data-order-id="${o.id}" data-reference="${o.reference}">Baixar</button>`
           : '—'
       }</td>
     `;
     tbody.appendChild(tr);
+  });
+
+  // Listener para todos os botões de download
+  document.querySelectorAll('.download-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const orderId   = btn.getAttribute('data-order-id');
+      const reference = btn.getAttribute('data-reference');
+      const invoice   = await api(`/api/orders/${orderId}/invoice`, { method: 'GET' });
+
+      if (!invoice || invoice.error) {
+        return alert(invoice.error || 'Não foi possível obter a factura');
+      }
+
+      // Baixar JSON da fatura
+      const content = JSON.stringify(invoice, null, 2);
+      const blob    = new Blob([content], { type: 'application/json' });
+      const url     = URL.createObjectURL(blob);
+      const a       = document.createElement('a');
+
+      a.href     = url;
+      a.download = `factura-${reference}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
   });
 }
 
