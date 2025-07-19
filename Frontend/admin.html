@@ -210,11 +210,11 @@
       <input type="text" id="searchInput" placeholder="Buscar por cliente, serviço ou referência…">
       <select id="statusFilter">
         <option value="">Todos os Status</option>
-        <option value="pending">Pendente</option>
-        <option value="in_progress">Em Progresso</option>
-        <option value="completed">Concluído</option>
+        <option value="pendente">Pendente</option>
+        <option value="Em progresso">Em Progresso</option>
+        <option value="concluído">Concluído</option>
       </select>
-      <button id="refreshBtn">Atualizar Lista</button>
+      <button id="refreshBtn">Actualizar Lista</button>
     </div>
 
     <div class="table-responsive">
@@ -228,7 +228,7 @@
             <th>Status</th>
             <th>Histórico</th>
             <th>Fatura</th>
-            <th>Ações</th>
+            <th>Actualizar o estado</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -241,7 +241,7 @@
         <input name="name" placeholder="Nome" required>
         <input name="email" type="email" placeholder="Email" required>
         <input name="password" type="password" placeholder="Password" required>
-        <input name="secret" type="password" placeholder="Segredo" required>
+        <input name="secret" type="password" placeholder="Chave de criação" required>
         <button type="submit" class="btn">Criar Admin</button>
       </form>
       <ul id="adminList"></ul>
