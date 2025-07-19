@@ -1,10 +1,12 @@
 const router   = require('express').Router();
 const jwt      = require('jsonwebtoken');
+const bcrypt   = require('bcryptjs');
 const Order    = require('../models/Order');
 const History  = require('../models/OrderHistory');
 const Invoice  = require('../models/Invoice');
 const User     = require('../models/User');
-const { JWT_SECRET } = process.env;
+const Audit    = require('../models/Audit');
+const { JWT_SECRET, ADMIN_REG_SECRET } = process.env;
 
 // Middleware para verificar admin
 function authAdmin(req, res, next) {
@@ -67,6 +69,62 @@ router.put('/orders/:id', authAdmin, async (req, res) => {
   } catch (err) {
     console.error('admin PUT /orders/:id erro:', err);
     res.status(500).json({ error: 'Erro interno ao atualizar status' });
+  }
+});
+
+// --------------------------------------------------
+// Novas rotas para gestão de administradores
+// --------------------------------------------------
+
+// GET /api/admin/users → lista todos administradores
+router.get('/users', authAdmin, async (req, res) => {
+  try {
+    const admins = await User.find({ role: 'admin' }, 'name email createdAt').lean();
+    res.json(admins);
+  } catch (err) {
+    console.error('admin GET /users erro:', err);
+    res.status(500).json({ error: 'Erro interno ao listar administradores' });
+  }
+});
+
+// POST /api/admin/users → cria novo admin
+router.post('/users', authAdmin, async (req, res) => {
+  const { name, email, password, secret } = req.body;
+  if (secret !== ADMIN_REG_SECRET) {
+    return res.status(403).json({ error: 'Segredo de administração inválido' });
+  }
+  if (!name || !email || !password) {
+    return res.status(400).json({ error: 'Campos name, email e password são obrigatórios' });
+  }
+  if (await User.findOne({ email })) {
+    return res.status(409).json({ error: 'Email já cadastrado' });
+  }
+  try {
+    const hash = await bcrypt.hash(password, 10);
+    const user = await User.create({ name, email, password: hash, role: 'admin' });
+    // registra auditoria
+    await Audit.create({ admin: req.user.id, action: 'create-admin', target: user._id });
+    res.json({ success: true, id: user._id, name: user.name, email: user.email });
+  } catch (err) {
+    console.error('admin POST /users erro:', err);
+    res.status(500).json({ error: 'Erro interno ao criar administrador' });
+  }
+});
+
+// DELETE /api/admin/users/:id → remove admin
+router.delete('/users/:id', authAdmin, async (req, res) => {
+  try {
+    const target = await User.findById(req.params.id);
+    if (!target || target.role !== 'admin') {
+      return res.status(404).json({ error: 'Administrador não encontrado' });
+    }
+    await User.deleteOne({ _id: target._id });
+    // registra auditoria
+    await Audit.create({ admin: req.user.id, action: 'delete-admin', target: target._id });
+    res.json({ success: true });
+  } catch (err) {
+    console.error('admin DELETE /users/:id erro:', err);
+    res.status(500).json({ error: 'Erro interno ao remover administrador' });
   }
 });
 
