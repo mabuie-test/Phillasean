@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Registro | PHIL ASEAN PROVIDER & LOGISTICS</title>
+  <link rel="icon" href="phil.jpeg" type="image/jpeg"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <link rel="stylesheet" href="styles.css"/>
+  <style>
+    body, * { margin:0; padding:0; box-sizing:border-box; font-family:Arial, sans-serif; }
+    header { background:#fff; box-shadow:0 2px 5px rgba(0,0,0,0.1); position:fixed; top:0; width:100%; z-index:1000; }
+    .header-container { display:flex; align-items:center; justify-content:space-between; padding:15px 30px; }
+    .logo img { width:40px; margin-right:10px; }
+    nav ul { display:flex; list-style:none; }
+    nav ul li { margin-left:20px; }
+    nav ul li a { color:#333; font-weight:500; display:flex; align-items:center; }
+    nav ul li a i { margin-right:6px; }
+    .mobile-menu-btn { display:none; background:none; border:none; font-size:1.2rem; }
+    @media(max-width:768px) {
+      nav ul { position:absolute; top:70px; right:0; background:#fff; flex-direction:column; width:200px; transform:translateX(100%); transition:transform .3s; }
+      nav ul.show { transform:translateX(0); }
+      .mobile-menu-btn { display:block; }
+    }
+    main { padding:120px 30px 60px; max-width:400px; margin:0 auto; }
+    .section-title { text-align:center; margin-bottom:30px; }
+    .section-title h2 { font-size:2rem; position:relative; }
+    .section-title h2::after { content:''; width:60px; height:3px; background:#0077cc; display:block; margin:10px auto 0; }
+    form { background:#fff; padding:30px; border-radius:6px; box-shadow:0 3px 6px rgba(0,0,0,0.1); }
+    .form-group { margin-bottom:15px; }
+    .form-group label { display:block; margin-bottom:5px; font-weight:500; }
+    .form-group input { width:100%; padding:10px; border:1px solid #ccc; border-radius:4px; }
+    .submit-btn { background:#0077cc; color:#fff; padding:12px 20px; border:none; border-radius:4px; cursor:pointer; width:100%; }
+    .submit-btn:hover { background:#005fa3; }
+    .link-group { text-align:center; margin-top:15px; }
+    .link-group a { color:#0077cc; text-decoration:none; }
+    footer { text-align:center; padding:20px 0; background:#f5f5f5; font-size:.9rem; margin-top:40px; }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="header-container">
+      <div class="logo">
+        <img src="phil.jpeg" alt="Logo PHIL ASEAN"/>
+        <span>PHIL ASEAN PROVIDER & LOGISTICS</span>
+      </div>
+      <nav>
+        <button class="mobile-menu-btn" id="mobile-menu-btn">
+          <i class="fas fa-bars"></i>
+        </button>
+        <ul id="main-menu">
+          <li><a href="index.html"><i class="fas fa-home"></i> Início</a></li>
+          <li><a href="index.html#services"><i class="fas fa-ship"></i> Serviços</a></li>
+          <li><a href="index.html#about"><i class="fas fa-info-circle"></i> Sobre</a></li>
+          <li><a href="login.html"><i class="fas fa-sign-in-alt"></i> Login</a></li>
+          <li><a href="register.html"><i class="fas fa-user-plus"></i> Registro</a></li>
+          <li><a href="index.html#contact"><i class="fas fa-envelope"></i> Contato</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main>
+    <div class="section-title">
+      <h2>Registro</h2>
+    </div>
+
+    <form id="registerForm">
+      <div class="form-group">
+        <label for="name">Nome Completo</label>
+        <input id="name" name="name" required />
+      </div>
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" required />
+      </div>
+      <div class="form-group">
+        <label for="password">Senha</label>
+        <input id="password" name="password" type="password" required />
+      </div>
+      <button type="submit" class="submit-btn">Registrar</button>
+      <div class="link-group">
+        <p>Já tem conta? <a href="login.html">Faça login</a></p>
+      </div>
+    </form>
+  </main>
+
+  <footer>
+    <p>© 2025 PHIL ASEAN PROVIDER & LOGISTICS. Todos os direitos reservados.</p>
+  </footer>
+
+  <!-- Mobile Menu Toggle -->
+  <script>
+    const mobileBtn = document.getElementById('mobile-menu-btn');
+    const mainMenu = document.getElementById('main-menu');
+    mobileBtn.addEventListener('click', () => mainMenu.classList.toggle('show'));
+  </script>
+  <!-- Script de autenticação -->
+  <script src="script.js" defer></script>
+</body>
+</html>
