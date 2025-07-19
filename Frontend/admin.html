@@ -12,6 +12,54 @@
       width: auto !important;
       background: #fff;
     }
+/* Seção de Auditoria */
+#audit-log {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 2px solid var(--primary);
+}
+
+#audit-log h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  color: var(--primary);
+}
+
+#auditList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 300px;       /* altura fixa com scroll */
+  overflow-y: auto;
+  border: 1px solid #ccc;
+  background: #fff;
+  border-radius: 4px;
+}
+
+#auditList li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid #eee;
+  font-size: 0.9rem;
+  color: var(--dark);
+}
+
+#auditList li:nth-child(odd) {
+  background: #fdfdfd;
+}
+
+#auditList li:last-child {
+  border-bottom: none;
+}
+
+@media (max-width: 768px) {
+  #auditList li {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
 
     :root {
       --primary: #0056b3;
@@ -247,7 +295,7 @@
       <ul id="adminList"></ul>
     </section>
     <section id="audit-log">
-  <h2>Log de Auditoria</h2>
+  <h2>Registos da Auditoria</h2>
   <ul id="auditList"></ul>
 </section>
 
