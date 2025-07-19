@@ -32,6 +32,7 @@ function auth(req, res, next) {
 }
 
 // transporter do Nodemailer
+// transporter do Nodemailer
 const transporter = nodemailer.createTransport({
   host: EMAIL_HOST,
   port: EMAIL_PORT,
@@ -40,17 +41,19 @@ const transporter = nodemailer.createTransport({
     pass: EMAIL_PASS
   },
   tls: {
-    // ignora erros de certificado mismatched
     rejectUnauthorized: false
   }
 });
+
+// Apenas loga err.message, não o objeto inteiro
 transporter.verify(err => {
   if (err) {
-    console.error('SMTP config inválida:', err.message);
+    console.error('SMTP config inválida ou credenciais incorretas:', err.message);
   } else {
     console.log('SMTP pronto para enviar emails');
   }
 });
+
 
 
 // POST /api/orders → criar pedido
