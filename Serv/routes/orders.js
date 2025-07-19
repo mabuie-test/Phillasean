@@ -4,6 +4,7 @@ const Order      = require('../models/Order');
 const History    = require('../models/OrderHistory');
 const Invoice    = require('../models/Invoice');
 const nodemailer = require('nodemailer');
+const PDFDocument = require('pdfkit');
 const {
   JWT_SECRET,
   EMAIL_HOST,
@@ -121,12 +122,55 @@ router.get('/', auth, async (req, res) => {
   res.json(data);
 });
 
-// GET /api/orders/:id/invoice → dados da fatura
+// GET /api/orders/:id/invoice → gera e envia PDF
 router.get('/:id/invoice', auth, async (req, res) => {
   if (req.user.role !== 'client') return res.status(403).json({ error: 'Acesso negado' });
   const inv = await Invoice.findOne({ order: req.params.id });
   if (!inv) return res.status(404).json({ error: 'Factura não encontrada' });
-  res.json(inv);
+
+  // Configura cabeçalhos para download de PDF
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', `attachment; filename="factura-${inv.reference}.pdf"`);
+
+  // Cria documento PDF
+  const doc = new PDFDocument({ margin: 50 });
+  doc.pipe(res);
+
+  // Cabeçalho
+  doc
+    .fontSize(20)
+    .text('FATURA', { align: 'center' })
+    .moveDown();
+
+  // Dados principais
+  doc
+    .fontSize(12)
+    .text(`Referência: ${inv.reference}`)
+    .text(`Data de Emissão: ${inv.date.toLocaleDateString()}`)
+    .text(`Vencimento: ${inv.dueDate.toLocaleDateString()}`)
+    .moveDown();
+
+  // Itens
+  doc.fontSize(14).text('Itens:', { underline: true }).moveDown(0.5);
+  inv.items.forEach(item => {
+    const line = `${item.name}: ${item.qty} × ${item.unitPrice.toFixed(2)} = ${(item.qty * item.unitPrice).toFixed(2)}`;
+    doc.fontSize(12).text(line);
+  });
+  doc.moveDown();
+
+  // Total
+  const total = inv.items.reduce((sum, i) => sum + i.qty * i.unitPrice, 0);
+  doc
+    .fontSize(14)
+    .text(`Total: ${total.toFixed(2)}`, { align: 'right' })
+    .moveDown(2);
+
+  // Rodapé
+  doc
+    .fontSize(10)
+    .text('Obrigado pela preferência!', { align: 'center' });
+
+  doc.end();
 });
 
 module.exports = router;
