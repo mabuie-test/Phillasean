@@ -3,17 +3,19 @@
 const API_BASE     = 'https://phillaseanbackend.onrender.com';
 const authTokenKey = 'phil_token';
 
-// Helper idêntico ao script.js
+// Helper para chamadas à API com tratamento de 401
 async function api(path, opts = {}) {
   const headers = opts.headers || {};
   const token = localStorage.getItem(authTokenKey);
   if (token) headers['Authorization'] = 'Bearer ' + token;
   headers['Content-Type'] = 'application/json';
+
   const res = await fetch(API_BASE + path, {
     ...opts,
     headers,
     body: opts.body ? JSON.stringify(opts.body) : undefined
   });
+
   if (res.status === 401) {
     window.location.href = 'login.html';
     return;
@@ -27,36 +29,37 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
   window.location.href = 'login.html';
 });
 
-// Elementos
-const tbody         = document.querySelector('#adminTable tbody');
-const searchInput   = document.getElementById('searchInput');
-const statusFilter  = document.getElementById('statusFilter');
-const refreshBtn    = document.getElementById('refreshBtn');
+// Elementos da interface
+const tbody        = document.querySelector('#adminTable tbody');
+const searchInput  = document.getElementById('searchInput');
+const statusFilter = document.getElementById('statusFilter');
+const refreshBtn   = document.getElementById('refreshBtn');
 
-// Carrega pedidos do admin
+// Carrega e renderiza pedidos
 async function loadAdminOrders() {
-  let orders = await api('/api/admin/orders', { method: 'GET' });
+  const orders = await api('/api/admin/orders', { method: 'GET' });
   if (!orders) return;
 
-  // Aplica filtro de status
-  const statusVal = statusFilter.value;
-  if (statusVal) {
-    orders = orders.filter(o => o.status === statusVal);
+  // Filtrar por status
+  let filtered = orders;
+  if (statusFilter.value) {
+    filtered = filtered.filter(o => o.status === statusFilter.value);
   }
-  // Aplica busca por texto
+
+  // Buscar por texto
   const q = searchInput.value.trim().toLowerCase();
   if (q) {
-    orders = orders.filter(o =>
+    filtered = filtered.filter(o =>
       o.client.name.toLowerCase().includes(q) ||
       o.client.email.toLowerCase().includes(q) ||
-      (o.details.service || '').toLowerCase().includes(q) ||
+      o.details.service.toLowerCase().includes(q) ||
       (o.reference || '').toLowerCase().includes(q)
     );
   }
 
-  // Renderiza tabela
+  // Montar linhas da tabela
   tbody.innerHTML = '';
-  orders.forEach(o => {
+  filtered.forEach(o => {
     const histHtml = (o.history || []).map(h =>
       `<li>${new Date(h.changedAt).toLocaleDateString()} — ${h.status} (${h.by})</li>`
     ).join('');
@@ -69,7 +72,7 @@ async function loadAdminOrders() {
       <td class="status-cell ${o.status}">${o.status.replace('_', ' ')}</td>
       <td><ul class="history-list">${histHtml}</ul></td>
       <td>
-        <button class="btn btn-download" data-order-id="${o._id}" data-ref="${o.reference}">
+        <button class="btn btn-download" data-id="${o._id}" data-ref="${o.reference}">
           PDF
         </button>
       </td>
@@ -88,19 +91,19 @@ async function loadAdminOrders() {
   attachActionListeners();
 }
 
-// Anexa listeners após renderizar
+// Anexa listeners aos botões criados dinamicamente
 function attachActionListeners() {
   // Atualizar status
-  document.querySelectorAll('.btn-update').forEach(btn => {
+  tbody.querySelectorAll('.btn-update').forEach(btn => {
     btn.onclick = async () => {
-      const id     = btn.dataset.id;
-      const select = document.querySelector(`.status-select[data-id="${id}"]`);
+      const id = btn.dataset.id;
+      const select = tbody.querySelector(`.status-select[data-id="${id}"]`);
       const status = select.value;
-      const resp   = await api(`/api/admin/orders/${id}`, {
+      const resp = await api(`/api/admin/orders/${id}`, {
         method: 'PUT',
         body: { status }
       });
-      if (resp && resp.success) {
+      if (resp?.success) {
         alert('Status atualizado');
         loadAdminOrders();
       } else {
@@ -110,39 +113,34 @@ function attachActionListeners() {
   });
 
   // Download de PDF
-  document.querySelectorAll('.btn-download').forEach(btn => {
+  tbody.querySelectorAll('.btn-download').forEach(btn => {
     btn.onclick = async () => {
-      const id  = btn.dataset.orderId;
+      const id  = btn.dataset.id;
       const ref = btn.dataset.ref;
-      try {
-        const res = await fetch(`${API_BASE}/api/orders/${id}/invoice`, {
-          headers: { 'Authorization': 'Bearer ' + localStorage.getItem(authTokenKey) }
-        });
-        if (!res.ok) {
-          const err = await res.json();
-          return alert(err.error || 'Erro ao baixar factura');
-        }
-        const blob = await res.blob();
-        const url  = URL.createObjectURL(blob);
-        const a    = document.createElement('a');
-        a.href     = url;
-        a.download = `factura-${ref}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      } catch (e) {
-        console.error('Erro ao baixar factura:', e);
-        alert('Falha ao baixar factura');
+      const res = await fetch(`${API_BASE}/api/orders/${id}/invoice`, {
+        headers: { 'Authorization': 'Bearer ' + localStorage.getItem(authTokenKey) }
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        return alert(err.error || 'Erro ao baixar factura');
       }
+      const blob = await res.blob();
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href     = url;
+      a.download = `factura-${ref}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
     };
   });
 }
 
-// Filtros e busca
+// Eventos de filtro e busca
 searchInput.addEventListener('input', loadAdminOrders);
 statusFilter.addEventListener('change', loadAdminOrders);
 refreshBtn.addEventListener('click', loadAdminOrders);
 
-// Inicializa
+// Inicialização
 loadAdminOrders();
