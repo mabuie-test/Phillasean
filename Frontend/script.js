@@ -1,6 +1,6 @@
 // script.js
 
-const API_BASE = 'https://phillaseanbackend.onrender.com';  // URL do seu backend no Render
+const API_BASE = 'https://phillaseanbackend.onrender.com';  // URL do backend no Render
 const authTokenKey = 'phil_token';
 
 // Helper para chamadas à API
@@ -70,28 +70,35 @@ const orderForm = document.getElementById('orderForm');
 if (orderForm) {
   orderForm.addEventListener('submit', async e => {
     e.preventDefault();
-    const f = new FormData(orderForm);
-    const body = {
-      name:      f.get('name'),
-      company:   f.get('company'),
-      email:     f.get('email'),
-      phone:     f.get('phone'),
-      vessel:    f.get('vessel'),
-      port:      f.get('port'),
-      date:      f.get('date'),
-      service:   f.get('service'),
-      quantity:  parseInt(f.get('quantity'), 10),
-      unitPrice: parseFloat(f.get('unitPrice') || 0),
-      notes:     f.get('notes')
-    };
-    const json = await api('/api/orders', { method: 'POST', body });
-    if (json.success) {
-      alert(`Pedido enviado! Referência: ${json.reference}`);
-      orderForm.reset();
-      // recarrega histórico após novo pedido
-      if (typeof loadOrderHistory === 'function') loadOrderHistory();
-    } else {
-      alert(json.error || 'Erro ao enviar pedido');
+    try {
+      const f = new FormData(orderForm);
+      const body = {
+        name:      f.get('name'),
+        company:   f.get('company'),
+        email:     f.get('email'),
+        phone:     f.get('phone'),
+        vessel:    f.get('vessel'),
+        port:      f.get('port'),
+        date:      f.get('date'),
+        service:   f.get('service'),
+        quantity:  parseInt(f.get('quantity'), 10),
+        unitPrice: parseFloat(f.get('unitPrice') || 0),
+        notes:     f.get('notes')
+      };
+      console.log('Enviando pedido:', body);
+      const json = await api('/api/orders', { method: 'POST', body });
+      console.log('Resposta do servidor:', json);
+
+      if (json.success) {
+        alert(`Pedido enviado! Referência: ${json.reference}`);
+        orderForm.reset();
+        if (typeof loadOrderHistory === 'function') loadOrderHistory();
+      } else {
+        alert(json.error || 'Erro ao enviar pedido');
+      }
+    } catch (err) {
+      console.error('Falha ao chamar API de pedidos:', err);
+      alert('Erro inesperado ao enviar pedido. Veja o console para mais detalhes.');
     }
   });
 }
@@ -111,6 +118,7 @@ async function loadOrderHistory() {
   if (!history || history.error) return;
   const tbody = document.querySelector('#historyTable tbody');
   if (!tbody) return;
+
   tbody.innerHTML = '';
   history.forEach(o => {
     const tr = document.createElement('tr');
@@ -129,7 +137,7 @@ async function loadOrderHistory() {
   });
 }
 
-// Se estiver na página de reservas, carrega o histórico ao iniciar
+// Carrega histórico ao abrir a página de reservas
 if (document.getElementById('historyTable')) {
   loadOrderHistory();
 }
