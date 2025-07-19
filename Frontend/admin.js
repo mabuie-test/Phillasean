@@ -44,23 +44,22 @@ async function loadAdminOrders() {
     orders = orders.filter(o => o.status === statusVal);
   }
   // Aplica busca por texto
-  const q = searchInput.value.toLowerCase();
+  const q = searchInput.value.trim().toLowerCase();
   if (q) {
     orders = orders.filter(o =>
       o.client.name.toLowerCase().includes(q) ||
       o.client.email.toLowerCase().includes(q) ||
-      o.details.service.toLowerCase().includes(q) ||
-      (o.reference && o.reference.toLowerCase().includes(q))
+      (o.details.service || '').toLowerCase().includes(q) ||
+      (o.reference || '').toLowerCase().includes(q)
     );
   }
 
   // Renderiza tabela
   tbody.innerHTML = '';
   orders.forEach(o => {
-    // Constrói histórico resumido
-    const histHtml = o.history?.map(h =>
+    const histHtml = (o.history || []).map(h =>
       `<li>${new Date(h.changedAt).toLocaleDateString()} — ${h.status} (${h.by})</li>`
-    ).join('') || '';
+    ).join('');
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td>${o._id}</td>
@@ -101,11 +100,11 @@ function attachActionListeners() {
         method: 'PUT',
         body: { status }
       });
-      if (resp.success) {
+      if (resp && resp.success) {
         alert('Status atualizado');
         loadAdminOrders();
       } else {
-        alert('Erro ao atualizar status');
+        alert(resp?.error || 'Erro ao atualizar status');
       }
     };
   });
@@ -133,7 +132,7 @@ function attachActionListeners() {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
       } catch (e) {
-        console.error(e);
+        console.error('Erro ao baixar factura:', e);
         alert('Falha ao baixar factura');
       }
     };
@@ -141,19 +140,9 @@ function attachActionListeners() {
 }
 
 // Filtros e busca
-searchInput.oninput  = loadAdminOrders;
-statusFilter.onchange = loadAdminOrders;
-refreshBtn.onclick   = loadAdminOrders;
+searchInput.addEventListener('input', loadAdminOrders);
+statusFilter.addEventListener('change', loadAdminOrders);
+refreshBtn.addEventListener('click', loadAdminOrders);
 
-// Inicializa: carrega pedidos e histórico
-(async () => {
-  // também busca histórico de cada pedido
-  const raw = await api('/api/admin/orders', { method: 'GET' });
-  const enriched = await Promise.all(raw.map(async o => {
-    const history = await api(`/api/orders?client=${o.client._id}`, { method: 'GET' });
-    // mas ideal seria ter um endpoint /api/admin/orders que já venha com history populado
-    return { ...o, history: history.find(h => h.id === o._id)?.history || [] };
-  }));
-  window._adminOrders = enriched;  // opcional, se precisar debugar
-  loadAdminOrders();
-})();
+// Inicializa
+loadAdminOrders();
