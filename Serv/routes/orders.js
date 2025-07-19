@@ -36,6 +36,7 @@ const transporter = nodemailer.createTransport({
   host: EMAIL_HOST,
   port: EMAIL_PORT,
   auth: { user: EMAIL_USER, pass: EMAIL_PASS }
+tls: { rejectUnauthorized: false }
 });
 transporter.verify(err => {
   if (err) console.error('SMTP config inválida:', err);
