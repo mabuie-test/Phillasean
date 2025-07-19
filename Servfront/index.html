@@ -402,6 +402,241 @@
     </footer>
 
     <!-- Mobile Menu Toggle Script -->
+
+    <script>
+        // Controle do Menu Mobile
+        document.getElementById('mobile-menu-btn').addEventListener('click', function() {            document.getElementById('main-menu').classList.toggle('active');
+        });
+
+        // Controle do Modal de Autenticação
+        document.getElementById('login-btn').addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('auth-modal').style.display = 'block';
+            document.getElementById('login-form').style.display = 'block';
+            document.getElementById('register-form').style.display = 'none';
+            document.getElementById('login-tab').classList.add('active');
+            document.getElementById('register-tab').classList.remove('active');
+        });
+
+        document.getElementById('register-btn').addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('auth-modal').style.display = 'block';
+            document.getElementById('login-form').style.display = 'none';
+            document.getElementById('register-form').style.display = 'block';
+            document.getElementById('login-tab').classList.remove('active');
+            document.getElementById('register-tab').classList.add('active');
+        });
+
+        // Alternar entre login e registro
+        document.getElementById('switch-to-register').addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('login-form').style.display = 'none';
+            document.getElementById('register-form').style.display = 'block';
+            document.getElementById('login-tab').classList.remove('active');
+            document.getElementById('register-tab').classList.add('active');
+        });
+
+        document.getElementById('switch-to-login').addEventListener('click', function(e) {
+            e.preventDefault();
+            document.getElementById('login-form').style.display = 'block';
+            document.getElementById('register-form').style.display = 'none';
+            document.getElementById('login-tab').classList.add('active');
+            document.getElementById('register-tab').classList.remove('active');
+        });
+
+        // Fechar modal ao clicar fora
+        window.addEventListener('click', function(e) {
+            if (e.target === document.getElementById('auth-modal')) {
+                document.getElementById('auth-modal').style.display = 'none';
+            }
+            if (e.target === document.getElementById('order-modal')) {
+                document.getElementById('order-modal').style.display = 'none';
+            }
+            if (e.target === document.getElementById('invoice-modal')) {
+                document.getElementById('invoice-modal').style.display = 'none';
+            }
+        });
+
+        // Botões de fechar
+        document.getElementById('close-modal').addEventListener('click', function() {
+            document.getElementById('order-modal').style.display = 'none';
+        });
+
+        document.getElementById('modal-close-btn').addEventListener('click', function() {
+            document.getElementById('order-modal').style.display = 'none';
+        });
+
+        document.getElementById('close-invoice-modal').addEventListener('click', function() {
+            document.getElementById('invoice-modal').style.display = 'none';
+        });
+
+        document.getElementById('close-invoice-btn').addEventListener('click', function() {
+            document.getElementById('invoice-modal').style.display = 'none';
+        });
+
+        // Envio do formulário
+        document.getElementById('service-order-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Gerar referência aleatória
+            const ref = 'PHIL-' + Math.floor(Math.random() * 1000000);
+            document.getElementById('order-reference').textContent = 'Sua referência: ' + ref;
+            
+            // Mostrar modal de confirmação
+            document.getElementById('order-modal').style.display = 'block';
+            
+            // Gerar fatura (simplificado para demonstração)
+            generateInvoice();
+            
+            // Resetar formulário
+            this.reset();
+        });
+
+        // Gerar fatura de exemplo
+        function generateInvoice() {
+            // Detalhes do cliente
+            const name = document.getElementById('name').value || 'Cliente Exemplo';
+            const company = document.getElementById('company').value || 'Empresa Exemplo';
+            const email = document.getElementById('email').value || 'cliente@exemplo.com';
+            const phone = document.getElementById('phone').value || '+258 123456789';
+            
+            document.getElementById('invoice-client-details').innerHTML = `
+                <p>${name}</p>
+                <p>${company}</p>
+                <p>${email}</p>
+                <p>${phone}</p>
+            `;
+            
+            // Detalhes da fatura
+            const today = new Date();
+            document.getElementById('invoice-number').textContent = 'FAT-' + today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate() + '-' + Math.floor(Math.random() * 1000);
+            document.getElementById('invoice-date').textContent = today.toLocaleDateString();
+            
+            const dueDate = new Date();
+            dueDate.setDate(today.getDate() + 14);
+            document.getElementById('invoice-due-date').textContent = dueDate.toLocaleDateString();
+            
+            // Itens da fatura (dados de exemplo)
+            const service = document.getElementById('service').value || 'provisions';
+            const quantity = document.getElementById('quantity').value || '100 kg';
+            
+            let serviceName, description, unitPrice;
+            
+            switch(service) {
+                case 'fuel':
+                    serviceName = 'Serviços de Bunkering';
+                    description = 'Fornecimento de Combustível Marítimo';
+                    unitPrice = 1.25;
+                    break;
+                case 'water':
+                    serviceName = 'Fornecimento de Água Potável';
+                    description = 'Água Limpa para Consumo';
+                    unitPrice = 0.15;
+                    break;
+                case 'provisions':
+                    serviceName = 'Provisões e Mantimentos';
+                    description = 'Frutas e Vegetais Frescos';
+                    unitPrice = 2.50;
+                    break;
+                case 'lubricants':
+                    serviceName = 'Lubrificantes Marítimos';
+                    description = 'Óleo e Graxa para Motor';
+                    unitPrice = 5.75;
+                    break;
+                default:
+                    serviceName = 'Serviço Marítimo';
+                    description = 'Serviço Marítimo Padrão';
+                    unitPrice = 100.00;
+            }
+            
+            const qty = parseFloat(quantity) || 100;
+            const amount = qty * unitPrice;
+            
+            document.getElementById('invoice-items-body').innerHTML = `
+                <tr>
+                    <td>${serviceName}</td>
+                    <td>${description}</td>
+                    <td>${quantity}</td>
+                    <td>$${unitPrice.toFixed(2)}</td>
+                    <td>$${amount.toFixed(2)}</td>
+                </tr>
+            `;
+            
+            // Calcular totais
+            const subtotal = amount;
+            const vat = subtotal * 0.16;
+            const total = subtotal + vat;
+            
+            document.getElementById('invoice-subtotal').textContent = '$' + subtotal.toFixed(2);
+            document.getElementById('invoice-vat').textContent = '$' + vat.toFixed(2);
+            document.getElementById('invoice-total').textContent = '$' + total.toFixed(2);
+        }
+
+        // Imprimir fatura
+        document.getElementById('print-invoice').addEventListener('click', function() {
+            window.print();
+        });
+
+        // Baixar fatura como PDF (simulado)
+        document.getElementById('download-invoice').addEventListener('click', function() {
+            alert('Fatura baixada como PDF (simulado para demonstração)');
+        });
+
+        // Alternar abas no modal de autenticação
+        document.getElementById('login-tab').addEventListener('click', function() {
+            document.getElementById('login-form').style.display = 'block';
+            document.getElementById('register-form').style.display = 'none';
+            this.classList.add('active');
+            document.getElementById('register-tab').classList.remove('active');
+        });
+
+        document.getElementById('register-tab').addEventListener('click', function() {
+            document.getElementById('login-form').style.display = 'none';
+            document.getElementById('register-form').style.display = 'block';
+            this.classList.add('active');
+            document.getElementById('login-tab').classList.remove('active');
+        });
+
+        // Controle do vídeo de fundo
+        document.addEventListener('DOMContentLoaded', function() {
+            const video = document.getElementById('background-video');
+            
+            // Função para tentar reproduzir o vídeo
+            function attemptPlay() {
+                video.play()
+                    .then(() => {
+                        // Vídeo iniciado com sucesso
+                    })
+                    .catch(error => {
+                        // Se autoplay for bloqueado, tentamos com mute
+                        video.muted = true;
+                        video.play();
+                    });
+            }
+
+            // Tentar reproduzir imediatamente
+            attemptPlay();
+
+            // Tentar novamente se o usuário interagir com a página
+            document.addEventListener('click', function() {
+                if (video.paused) {
+                    attemptPlay();
+                }
+            }, { once: true });
+
+            // Pausar vídeo quando a página não estiver visível
+            document.addEventListener('visibilitychange', function() {
+                if (document.hidden) {
+                    video.pause();
+                } else {
+                    attemptPlay();
+                }
+            });
+        });
+    </script>
+
+
+    
     <script>
         const mobileBtn = document.getElementById('mobile-menu-btn');
         const mainMenu = document.getElementById('main-menu');
