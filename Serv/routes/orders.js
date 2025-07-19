@@ -17,11 +17,16 @@ const {
 // middleware para extrair e validar JWT
 function auth(req, res, next) {
   const token = req.headers.authorization?.split(' ')[1];
-  if (!token) return res.status(401).json({ error: 'Não autorizado' });
+  if (!token) {
+    console.warn('auth: token ausente');
+    return res.status(401).json({ error: 'Não autorizado' });
+  }
   try {
     req.user = jwt.verify(token, JWT_SECRET);
+    console.log('auth: usuário', req.user);
     next();
-  } catch {
+  } catch (err) {
+    console.error('auth: token inválido', err);
     res.status(401).json({ error: 'Token inválido' });
   }
 }
@@ -32,8 +37,6 @@ const transporter = nodemailer.createTransport({
   port: EMAIL_PORT,
   auth: { user: EMAIL_USER, pass: EMAIL_PASS }
 });
-
-// Opcional: verificar SMTP na inicialização
 transporter.verify(err => {
   if (err) console.error('SMTP config inválida:', err);
   else     console.log('SMTP pronto para enviar emails');
@@ -41,7 +44,12 @@ transporter.verify(err => {
 
 // POST /api/orders → criar pedido
 router.post('/', auth, async (req, res) => {
-  if (req.user.role !== 'client') return res.status(403).json({ error: 'Acesso negado' });
+  console.log('POST /api/orders by', req.user);
+  // permite se role ausente ou 'client'
+  if (req.user.role && req.user.role !== 'client') {
+    console.warn('POST /api/orders bloqueado para role', req.user.role);
+    return res.status(403).json({ error: 'Acesso negado' });
+  }
 
   // 1) Cria o pedido
   const doc = await Order.create({
@@ -96,13 +104,18 @@ router.post('/', auth, async (req, res) => {
     success:   true,
     orderId:   doc._id,
     reference,
-    mailError // null se enviado com sucesso, ou string com a mensagem de erro
+    mailError
   });
 });
 
 // GET /api/orders → histórico do cliente
 router.get('/', auth, async (req, res) => {
-  if (req.user.role !== 'client') return res.status(403).json({ error: 'Acesso negado' });
+  console.log('GET /api/orders by', req.user);
+  if (req.user.role && req.user.role !== 'client') {
+    console.warn('GET /api/orders bloqueado para role', req.user.role);
+    return res.status(403).json({ error: 'Acesso negado' });
+  }
+
   const orders = await Order.find({ client: req.user.id }).sort({ createdAt: -1 });
   const data = await Promise.all(orders.map(async o => {
     const inv = await Invoice.findOne({ order: o._id });
@@ -115,8 +128,7 @@ router.get('/', auth, async (req, res) => {
       date:      o.details.estimatedDate,
       status:    o.status,
       createdAt: o.createdAt,
-      reference: inv?.reference,
-      invoiceId: inv?._id
+      reference: inv?.reference || null
     };
   }));
   res.json(data);
@@ -124,51 +136,38 @@ router.get('/', auth, async (req, res) => {
 
 // GET /api/orders/:id/invoice → gera e envia PDF
 router.get('/:id/invoice', auth, async (req, res) => {
-  if (req.user.role !== 'client') return res.status(403).json({ error: 'Acesso negado' });
+  console.log('GET /api/orders/:id/invoice by', req.user);
+  if (req.user.role && req.user.role !== 'client') {
+    console.warn('GET invoice bloqueado para role', req.user.role);
+    return res.status(403).json({ error: 'Acesso negado' });
+  }
+
   const inv = await Invoice.findOne({ order: req.params.id });
-  if (!inv) return res.status(404).json({ error: 'Factura não encontrada' });
+  if (!inv) {
+    console.warn('Invoice não encontrada para order', req.params.id);
+    return res.status(404).json({ error: 'Factura não encontrada' });
+  }
 
   // Configura cabeçalhos para download de PDF
   res.setHeader('Content-Type', 'application/pdf');
   res.setHeader('Content-Disposition', `attachment; filename="factura-${inv.reference}.pdf"`);
 
-  // Cria documento PDF
   const doc = new PDFDocument({ margin: 50 });
   doc.pipe(res);
 
-  // Cabeçalho
-  doc
-    .fontSize(20)
-    .text('FATURA', { align: 'center' })
-    .moveDown();
-
-  // Dados principais
-  doc
-    .fontSize(12)
+  doc.fontSize(20).text('FATURA', { align: 'center' }).moveDown();
+  doc.fontSize(12)
     .text(`Referência: ${inv.reference}`)
-    .text(`Data de Emissão: ${inv.date.toLocaleDateString()}`)
+    .text(`Data de Emissão: ${new Date().toLocaleDateString()}`)
     .text(`Vencimento: ${inv.dueDate.toLocaleDateString()}`)
     .moveDown();
-
-  // Itens
   doc.fontSize(14).text('Itens:', { underline: true }).moveDown(0.5);
   inv.items.forEach(item => {
-    const line = `${item.name}: ${item.qty} × ${item.unitPrice.toFixed(2)} = ${(item.qty * item.unitPrice).toFixed(2)}`;
-    doc.fontSize(12).text(line);
+    doc.fontSize(12).text(`${item.name}: ${item.qty} × ${item.unitPrice.toFixed(2)} = ${(item.qty * item.unitPrice).toFixed(2)}`);
   });
-  doc.moveDown();
-
-  // Total
   const total = inv.items.reduce((sum, i) => sum + i.qty * i.unitPrice, 0);
-  doc
-    .fontSize(14)
-    .text(`Total: ${total.toFixed(2)}`, { align: 'right' })
-    .moveDown(2);
-
-  // Rodapé
-  doc
-    .fontSize(10)
-    .text('Obrigado pela preferência!', { align: 'center' });
+  doc.fontSize(14).text(`Total: ${total.toFixed(2)}`, { align: 'right' }).moveDown(2);
+  doc.fontSize(10).text('Obrigado pela preferência!', { align: 'center' });
 
   doc.end();
 });
