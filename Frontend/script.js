@@ -1,4 +1,4 @@
-const API_BASE = ''; // deixe vazio ou informe a URL do backend
+const API_BASE = 'https://phillaseanbackend.onrender.com'; // deixe vazio ou informe a URL do backend
 const authTokenKey = 'phil_token';
 
 // Helper para chamadas à API
