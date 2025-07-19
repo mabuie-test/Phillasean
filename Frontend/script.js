@@ -38,7 +38,6 @@ if (registerForm) {
     const json = await api('/api/auth/register', { method: 'POST', body });
     if (json.token) {
       localStorage.setItem(authTokenKey, json.token);
-      // sempre cliente after register
       window.location.href = 'reserva.html';
     } else {
       alert(json.error || 'Erro no registro');
@@ -51,22 +50,40 @@ const loginForm = document.getElementById('loginForm');
 if (loginForm) {
   loginForm.addEventListener('submit', async e => {
     e.preventDefault();
+
     const f = new FormData(loginForm);
     const body = {
       email:    f.get('email'),
       password: f.get('password')
     };
+
     const json = await api('/api/auth/login', { method: 'POST', body });
-    if (json.token) {
-      localStorage.setItem(authTokenKey, json.token);
-      // redireciona conforme o papel do usuário
-      if (json.role === 'admin') {
-        window.location.href = 'admin.html';
-      } else {
-        window.location.href = 'reserva.html';
+
+    console.log('Resposta do login:', json);
+
+    if (!json.token) {
+      return alert(json.error || 'Erro no login');
+    }
+
+    localStorage.setItem(authTokenKey, json.token);
+
+    // Determina o role: a partir do JSON ou decodificando o token
+    let role = json.role;
+    if (!role) {
+      try {
+        const payload = JSON.parse(atob(json.token.split('.')[1]));
+        role = payload.role;
+        console.warn('Role obtido do token JWT:', role);
+      } catch {
+        console.error('Falha ao decodificar token para extrair role');
       }
+    }
+
+    // Redireciona conforme role
+    if (role === 'admin') {
+      window.location.href = 'admin.html';
     } else {
-      alert(json.error || 'Erro no login');
+      window.location.href = 'reserva.html';
     }
   });
 }
