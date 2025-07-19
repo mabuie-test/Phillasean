@@ -73,7 +73,7 @@ router.put('/orders/:id', authAdmin, async (req, res) => {
 });
 
 // --------------------------------------------------
-// Novas rotas para gestão de administradores
+// Gestão de administradores
 // --------------------------------------------------
 
 // GET /api/admin/users → lista todos administradores
@@ -125,6 +125,26 @@ router.delete('/users/:id', authAdmin, async (req, res) => {
   } catch (err) {
     console.error('admin DELETE /users/:id erro:', err);
     res.status(500).json({ error: 'Erro interno ao remover administrador' });
+  }
+});
+
+// --------------------------------------------------
+// Nova rota para listar logs de auditoria
+// --------------------------------------------------
+
+// GET /api/admin/audit → lista logs de auditoria
+router.get('/audit', authAdmin, async (req, res) => {
+  try {
+    const logs = await Audit.find()
+      .sort({ timestamp: -1 })
+      .limit(100)
+      .populate('admin', 'name email')
+      .populate('target', 'name email')
+      .lean();
+    res.json(logs);
+  } catch (err) {
+    console.error('admin GET /audit erro:', err);
+    res.status(500).json({ error: 'Erro interno ao listar auditoria' });
   }
 });
 
