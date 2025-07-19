@@ -281,3 +281,96 @@ footer {
   background: var(--primary);
   color: #fff;
 }
+/* =======================================
+   Dashboard Admin Responsivo
+   ======================================= */
+.container {
+  width: 90%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem 0;
+}
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--primary);
+}
+header h1 {
+  font-size: 1.75rem;
+  color: var(--dark);
+}
+/* Controles */
+#controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+#controls input,
+#controls select,
+#controls button {
+  padding: 0.5rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+#controls button {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+/* Tabela responsiva */
+.table-responsive {
+  overflow-x: auto;
+  margin-bottom: 2rem;
+}
+#adminTable {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 800px;
+}
+#adminTable th,
+#adminTable td {
+  padding: 0.75rem;
+  border: 1px solid #ccc;
+  text-align: left;
+}
+#adminTable th {
+  background: var(--primary);
+  color: #fff;
+}
+/* Botões */
+.btn-update { background: var(--success); color: #fff; border: none; }
+.btn-download { background: var(--accent); color: #fff; border: none; }
+/* Status */
+.status-cell.pending    { color: var(--error); }
+.status-cell.in_progress{ color: var(--accent); }
+.status-cell.completed  { color: var(--success); }
+/* Histórico */
+.history-list {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+  font-size: 0.85rem;
+  color: #333;
+}
+.history-list li {
+  margin-bottom: 0.25rem;
+}
+/* Mobile */
+@media (max-width: 768px) {
+  header h1 {
+    font-size: 1.4rem;
+  }
+  #controls {
+    flex-direction: column;
+  }
+  #controls input,
+  #controls select,
+  #controls button {
+    width: 100%;
+  }
+}
