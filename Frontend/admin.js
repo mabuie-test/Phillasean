@@ -1,7 +1,7 @@
 // admin.js
 
 console.log('⚙️ admin.js carregado');
-
+const auditList = document.getElementById('auditList');
 const API_BASE       = 'https://phillaseanbackend.onrender.com';
 const authTokenKey   = 'phil_token';
 
