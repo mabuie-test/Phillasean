@@ -249,4 +249,5 @@ refreshBtn.addEventListener('click', loadAdminOrders);
 (async () => {
   await loadAdminOrders();
   await loadAdmins();
+  await loadAuditLog();
 })();
