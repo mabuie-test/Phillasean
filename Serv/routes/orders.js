@@ -45,13 +45,11 @@ transporter.verify(err => {
 // POST /api/orders → criar pedido
 router.post('/', auth, async (req, res) => {
   console.log('POST /api/orders by', req.user);
-  // permite se role ausente ou 'client'
   if (req.user.role && req.user.role !== 'client') {
     console.warn('POST /api/orders bloqueado para role', req.user.role);
     return res.status(403).json({ error: 'Acesso negado' });
   }
 
-  // 1) Cria o pedido
   const doc = await Order.create({
     client: req.user.id,
     details: {
@@ -63,9 +61,8 @@ router.post('/', auth, async (req, res) => {
       estimatedDate: req.body.date
     }
   });
-  // 2) Histórico
   await History.create({ order: doc._id, status: 'pending', by: 'client' });
-  // 3) Fatura
+
   const reference = `PHIL-${Date.now()}-${Math.floor(Math.random() * 9000 + 1000)}`;
   await Invoice.create({
     order:   doc._id,
@@ -78,7 +75,6 @@ router.post('/', auth, async (req, res) => {
     }]
   });
 
-  // 4) Envio de email (não bloqueia o fluxo)
   let mailError = null;
   try {
     await transporter.sendMail({
@@ -99,7 +95,6 @@ router.post('/', auth, async (req, res) => {
     mailError = err.message;
   }
 
-  // 5) Resposta
   res.json({
     success:   true,
     orderId:   doc._id,
@@ -137,7 +132,8 @@ router.get('/', auth, async (req, res) => {
 // GET /api/orders/:id/invoice → gera e envia PDF
 router.get('/:id/invoice', auth, async (req, res) => {
   console.log('GET /api/orders/:id/invoice by', req.user);
-  if (req.user.role && req.user.role !== 'client') {
+  // agora permite clients e admins
+  if (req.user.role && req.user.role !== 'client' && req.user.role !== 'admin') {
     console.warn('GET invoice bloqueado para role', req.user.role);
     return res.status(403).json({ error: 'Acesso negado' });
   }
@@ -148,7 +144,6 @@ router.get('/:id/invoice', auth, async (req, res) => {
     return res.status(404).json({ error: 'Factura não encontrada' });
   }
 
-  // Configura cabeçalhos para download de PDF
   res.setHeader('Content-Type', 'application/pdf');
   res.setHeader('Content-Disposition', `attachment; filename="factura-${inv.reference}.pdf"`);
 
