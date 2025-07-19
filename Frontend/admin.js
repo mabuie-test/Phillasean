@@ -41,10 +41,9 @@ async function loadAdminOrders() {
   if (!orders) return;
 
   // Filtrar por status
-  let filtered = orders;
-  if (statusFilter.value) {
-    filtered = filtered.filter(o => o.status === statusFilter.value);
-  }
+  let filtered = statusFilter.value
+    ? orders.filter(o => o.status === statusFilter.value)
+    : orders.slice();
 
   // Buscar por texto
   const q = searchInput.value.trim().toLowerCase();
@@ -52,7 +51,7 @@ async function loadAdminOrders() {
     filtered = filtered.filter(o =>
       o.client.name.toLowerCase().includes(q) ||
       o.client.email.toLowerCase().includes(q) ||
-      o.details.service.toLowerCase().includes(q) ||
+      (o.details.service || '').toLowerCase().includes(q) ||
       (o.reference || '').toLowerCase().includes(q)
     );
   }
@@ -72,17 +71,17 @@ async function loadAdminOrders() {
       <td class="status-cell ${o.status}">${o.status.replace('_', ' ')}</td>
       <td><ul class="history-list">${histHtml}</ul></td>
       <td>
-        <button class="btn btn-download" data-id="${o._id}" data-ref="${o.reference}">
+        <button class="btn btn-download" data-order-id="${o._id}" data-ref="${o.reference}">
           PDF
         </button>
       </td>
       <td>
-        <select class="status-select" data-id="${o._id}">
+        <select class="status-select" data-order-id="${o._id}">
           <option value="pending" ${o.status==='pending'?'selected':''}>Pendente</option>
           <option value="in_progress" ${o.status==='in_progress'?'selected':''}>Em Progresso</option>
           <option value="completed" ${o.status==='completed'?'selected':''}>Concluído</option>
         </select>
-        <button class="btn btn-update" data-id="${o._id}">OK</button>
+        <button class="btn btn-update" data-order-id="${o._id}">OK</button>
       </td>
     `;
     tbody.appendChild(tr);
@@ -91,15 +90,15 @@ async function loadAdminOrders() {
   attachActionListeners();
 }
 
-// Anexa listeners aos botões criados dinamicamente
+// Anexa listeners aos botões depois de renderizar
 function attachActionListeners() {
   // Atualizar status
   tbody.querySelectorAll('.btn-update').forEach(btn => {
     btn.onclick = async () => {
-      const id = btn.dataset.id;
-      const select = tbody.querySelector(`.status-select[data-id="${id}"]`);
-      const status = select.value;
-      const resp = await api(`/api/admin/orders/${id}`, {
+      const orderId = btn.dataset.orderId;
+      const select  = tbody.querySelector(`.status-select[data-order-id="${orderId}"]`);
+      const status  = select.value;
+      const resp    = await api(`/api/admin/orders/${orderId}`, {
         method: 'PUT',
         body: { status }
       });
@@ -115,9 +114,9 @@ function attachActionListeners() {
   // Download de PDF
   tbody.querySelectorAll('.btn-download').forEach(btn => {
     btn.onclick = async () => {
-      const id  = btn.dataset.id;
-      const ref = btn.dataset.ref;
-      const res = await fetch(`${API_BASE}/api/orders/${id}/invoice`, {
+      const orderId = btn.dataset.orderId;
+      const ref     = btn.dataset.ref;
+      const res     = await fetch(`${API_BASE}/api/orders/${orderId}/invoice`, {
         headers: { 'Authorization': 'Bearer ' + localStorage.getItem(authTokenKey) }
       });
       if (!res.ok) {
@@ -137,7 +136,7 @@ function attachActionListeners() {
   });
 }
 
-// Eventos de filtro e busca
+// Dispara reload ao mudar filtros ou buscar
 searchInput.addEventListener('input', loadAdminOrders);
 statusFilter.addEventListener('change', loadAdminOrders);
 refreshBtn.addEventListener('click', loadAdminOrders);
