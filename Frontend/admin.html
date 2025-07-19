@@ -6,14 +6,13 @@
   <title>Painel Admin | PHIL ASEAN</title>
   <link rel="stylesheet" href="styles.css">
   <style>
-/* Anula o fixed header geral para o painel admin */
-header {
-  position: static !important;
-  width: auto !important;
-  background: #fff; /* opcional: garante contraste */
-}
+    /* Anula o fixed header geral para o painel admin */
+    header {
+      position: static !important;
+      width: auto !important;
+      background: #fff;
+    }
 
-    
     :root {
       --primary: #0056b3;
       --success: #28a745;
@@ -22,18 +21,21 @@ header {
       --light: #f8f9fa;
       --error: #dc3545;
     }
+
     body {
       margin: 0;
       font-family: Arial, sans-serif;
       background: var(--light);
       color: var(--dark);
     }
+
     .container {
       width: 90%;
       max-width: 1200px;
       margin: 0 auto;
       padding: 1rem 0;
     }
+
     header {
       display: flex;
       justify-content: space-between;
@@ -41,10 +43,12 @@ header {
       padding-bottom: 1rem;
       border-bottom: 2px solid var(--primary);
     }
+
     header h1 {
       font-size: 1.75rem;
       margin: 0;
     }
+
     #logoutBtn {
       background: var(--primary);
       color: #fff;
@@ -53,12 +57,14 @@ header {
       border-radius: 4px;
       cursor: pointer;
     }
+
     #controls {
       display: flex;
       flex-wrap: wrap;
       gap: 0.5rem;
       margin: 1rem 0;
     }
+
     #controls input,
     #controls select,
     #controls button {
@@ -67,44 +73,56 @@ header {
       border: 1px solid #ccc;
       border-radius: 4px;
     }
+
     #controls button {
       background: var(--primary);
       color: #fff;
       border: none;
       cursor: pointer;
     }
+
     .table-responsive {
       overflow-x: auto;
       margin-bottom: 2rem;
     }
+
     table {
       width: 100%;
       border-collapse: collapse;
       min-width: 800px;
     }
+
     th, td {
       padding: 0.75rem;
       border: 1px solid #ccc;
       text-align: left;
       vertical-align: top;
     }
+
     th {
       background: var(--primary);
       color: #fff;
     }
+
     .btn-update,
-    .btn-download {
+    .btn-download,
+    .btn {
       padding: 0.4rem 0.8rem;
       font-size: 0.9rem;
       border-radius: 4px;
       border: none;
       cursor: pointer;
+      margin-top: 0.5rem;
     }
+
     .btn-update { background: var(--success); color: #fff; }
     .btn-download { background: var(--accent); color: #fff; }
+    #createAdminForm .btn { background: var(--primary); color: #fff; }
+
     .status-cell.pending    { color: var(--error); }
     .status-cell.in_progress{ color: var(--accent); }
     .status-cell.completed  { color: var(--success); }
+
     .history-list {
       list-style: none;
       padding-left: 0;
@@ -112,9 +130,50 @@ header {
       font-size: 0.85rem;
       color: #333;
     }
+
     .history-list li {
       margin-bottom: 0.25rem;
     }
+
+    #user-management {
+      margin-top: 2rem;
+      padding-top: 1rem;
+      border-top: 2px solid var(--primary);
+    }
+    #user-management h2 {
+      margin-bottom: 1rem;
+      font-size: 1.5rem;
+      color: var(--primary);
+    }
+    #createAdminForm {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    #createAdminForm input {
+      flex: 1 1 200px;
+      padding: 0.5rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    #adminList {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+    #adminList li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      margin-bottom: 0.5rem;
+    }
+
     @media (max-width: 768px) {
       header h1 {
         font-size: 1.4rem;
@@ -129,6 +188,13 @@ header {
       }
       table {
         min-width: 100%;
+      }
+      #createAdminForm {
+        flex-direction: column;
+      }
+      #createAdminForm input,
+      #createAdminForm .btn {
+        width: 100%;
       }
     }
   </style>
@@ -168,6 +234,18 @@ header {
         <tbody></tbody>
       </table>
     </div>
+
+    <section id="user-management">
+      <h2>Gestão de Administradores</h2>
+      <form id="createAdminForm">
+        <input name="name" placeholder="Nome" required>
+        <input name="email" type="email" placeholder="Email" required>
+        <input name="password" type="password" placeholder="Password" required>
+        <input name="secret" type="password" placeholder="Segredo" required>
+        <button type="submit" class="btn">Criar Admin</button>
+      </form>
+      <ul id="adminList"></ul>
+    </section>
   </div>
 
   <script src="admin.js" defer></script>
