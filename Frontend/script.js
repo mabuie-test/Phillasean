@@ -85,10 +85,7 @@ if (orderForm) {
         unitPrice: parseFloat(f.get('unitPrice') || 0),
         notes:     f.get('notes')
       };
-      console.log('Enviando pedido:', body);
       const json = await api('/api/orders', { method: 'POST', body });
-      console.log('Resposta do servidor:', json);
-
       if (json.success) {
         alert(`Pedido enviado! Referência: ${json.reference}`);
         orderForm.reset();
@@ -112,7 +109,7 @@ if (logoutBtn) {
   });
 }
 
-// --- Histórico de Pedidos com botão de download autorizado ---
+// --- Histórico de Pedidos com download de PDF ---
 async function loadOrderHistory() {
   const history = await api('/api/orders', { method: 'GET' });
   if (!history || history.error) return;
@@ -129,36 +126,39 @@ async function loadOrderHistory() {
       <td>${o.status}</td>
       <td>${
         o.reference
-          ? `<button class="btn download-btn" data-order-id="${o.id}" data-reference="${o.reference}">Baixar</button>`
+          ? `<button class="btn download-btn" data-order-id="${o.id}" data-reference="${o.reference}">Baixar PDF</button>`
           : '—'
       }</td>
     `;
     tbody.appendChild(tr);
   });
 
-  // Listener para todos os botões de download
+  // Listener para todos os botões de download PDF
   document.querySelectorAll('.download-btn').forEach(btn => {
     btn.addEventListener('click', async () => {
       const orderId   = btn.getAttribute('data-order-id');
       const reference = btn.getAttribute('data-reference');
-      const invoice   = await api(`/api/orders/${orderId}/invoice`, { method: 'GET' });
-
-      if (!invoice || invoice.error) {
-        return alert(invoice.error || 'Não foi possível obter a factura');
+      try {
+        const res = await fetch(`${API_BASE}/api/orders/${orderId}/invoice`, {
+          headers: { 'Authorization': 'Bearer ' + localStorage.getItem(authTokenKey) }
+        });
+        if (!res.ok) {
+          const err = await res.json();
+          return alert(err.error || 'Erro ao baixar factura');
+        }
+        const blob = await res.blob();  // PDF blob
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a');
+        a.href     = url;
+        a.download = `factura-${reference}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      } catch (e) {
+        console.error('Erro no download da factura:', e);
+        alert('Falha ao baixar factura');
       }
-
-      // Baixar JSON da fatura
-      const content = JSON.stringify(invoice, null, 2);
-      const blob    = new Blob([content], { type: 'application/json' });
-      const url     = URL.createObjectURL(blob);
-      const a       = document.createElement('a');
-
-      a.href     = url;
-      a.download = `factura-${reference}.json`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
     });
   });
 }
