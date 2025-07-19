@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Área do Cliente | PHIL ASEAN PROVIDER & LOGISTICS</title>
+  <link rel="icon" href="assets/phil.jpeg" type="image/jpeg">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="container header-container">
+      <div class="logo">
+        <img src="assets/phil.jpeg" alt="Logo PHIL ASEAN" id="logo-img">
+        <span>PHIL ASEAN PROVIDER & LOGISTICS</span>
+      </div>
+      <nav>
+        <button class="mobile-menu-btn" id="mobile-menu-btn">
+          <i class="fas fa-bars"></i>
+        </button>
+        <ul id="main-menu">
+          <li><a href="index.html"><i class="fas fa-home"></i> Início</a></li>
+          <li><a href="index.html#services"><i class="fas fa-ship"></i> Serviços</a></li>
+          <li><a href="index.html#about"><i class="fas fa-info-circle"></i> Sobre</a></li>
+          <li><a href="reserva.html"><i class="fas fa-clipboard-list"></i> Área Cliente</a></li>
+          <li><a href="index.html#contact"><i class="fas fa-envelope"></i> Contato</a></li>
+          <li><button id="logoutBtn" style="background:none;border:none;cursor:pointer;">
+            <i class="fas fa-sign-out-alt"></i> Logout
+          </button></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main>
+    <div class="section-title">
+      <h2>Área do Cliente / Fazer Pedido</h2>
+    </div>
+
+    <form id="orderForm">
+      <div class="form-group">
+        <label for="name">Nome Completo</label>
+        <input id="name" name="name" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label for="company">Empresa</label>
+        <input id="company" name="company" class="form-control">
+      </div>
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label for="phone">Telefone</label>
+        <input id="phone" name="phone" type="tel" class="form-control">
+      </div>
+      <div class="form-group">
+        <label for="vessel">Nome do Navio</label>
+        <input id="vessel" name="vessel" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label for="port">Porto</label>
+        <input id="port" name="port" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label for="date">Data Estimada</label>
+        <input id="date" name="date" type="date" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label for="service">Serviço Desejado</label>
+        <input id="service" name="service" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label for="quantity">Quantidade</label>
+        <input id="quantity" name="quantity" type="number" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label for="unitPrice">Preço Unitário (Opcional)</label>
+        <input id="unitPrice" name="unitPrice" type="number" step="0.01" class="form-control">
+      </div>
+      <div class="form-group">
+        <label for="notes">Observações Adicionais</label>
+        <textarea id="notes" name="notes" class="form-control"></textarea>
+      </div>
+      <button type="submit" class="btn submit-btn">Enviar Pedido</button>
+    </form>
+  </main>
+
+  <footer>
+    <p>© 2025 PHIL ASEAN PROVIDER & LOGISTICS. Todos os direitos reservados.</p>
+  </footer>
+
+  <script>
+    document.getElementById('mobile-menu-btn').addEventListener('click', () => {
+      document.getElementById('main-menu').classList.toggle('show');
+    });
+  </script>
+  <script src="script.js" defer></script>
+</body>
+</html>
