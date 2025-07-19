@@ -17,7 +17,6 @@ async function api(path, opts = {}) {
   });
 
   if (res.status === 401) {
-    // Não autorizado, redireciona para login
     window.location.href = 'login.html';
     return;
   }
@@ -36,6 +35,7 @@ if (registerForm) {
       password: f.get('password')
     };
     const json = await api('/api/auth/register', { method: 'POST', body });
+    console.log('resp POST /api/auth/register:', json);
     if (json.token) {
       localStorage.setItem(authTokenKey, json.token);
       window.location.href = 'reserva.html';
@@ -50,36 +50,28 @@ const loginForm = document.getElementById('loginForm');
 if (loginForm) {
   loginForm.addEventListener('submit', async e => {
     e.preventDefault();
-
     const f = new FormData(loginForm);
     const body = {
       email:    f.get('email'),
       password: f.get('password')
     };
-
     const json = await api('/api/auth/login', { method: 'POST', body });
-
-    console.log('Resposta do login:', json);
-
+    console.log('resp POST /api/auth/login:', json);
     if (!json.token) {
       return alert(json.error || 'Erro no login');
     }
-
     localStorage.setItem(authTokenKey, json.token);
 
-    // Determina o role: a partir do JSON ou decodificando o token
     let role = json.role;
     if (!role) {
       try {
         const payload = JSON.parse(atob(json.token.split('.')[1]));
         role = payload.role;
-        console.warn('Role obtido do token JWT:', role);
       } catch {
-        console.error('Falha ao decodificar token para extrair role');
+        console.warn('Não foi possível extrair role do token');
       }
     }
 
-    // Redireciona conforme role
     if (role === 'admin') {
       window.location.href = 'admin.html';
     } else {
@@ -108,17 +100,19 @@ if (orderForm) {
         unitPrice: parseFloat(f.get('unitPrice') || 0),
         notes:     f.get('notes')
       };
+      console.log('POST /api/orders', body);
       const json = await api('/api/orders', { method: 'POST', body });
+      console.log('resp POST /api/orders:', json);
       if (json.success) {
         alert(`Pedido enviado! Referência: ${json.reference}`);
         orderForm.reset();
-        if (typeof loadOrderHistory === 'function') loadOrderHistory();
+        loadOrderHistory();
       } else {
         alert(json.error || 'Erro ao enviar pedido');
       }
     } catch (err) {
-      console.error('Falha ao chamar API de pedidos:', err);
-      alert('Erro inesperado ao enviar pedido. Veja o console para mais detalhes.');
+      console.error('Erro inesperado no envio de pedido:', err);
+      alert('Erro inesperado ao enviar pedido. Veja o console.');
     }
   });
 }
@@ -132,58 +126,63 @@ if (logoutBtn) {
   });
 }
 
-// --- Histórico de Pedidos com download de PDF ---
+// Histórico de Pedidos com download de PDF
 async function loadOrderHistory() {
-  const history = await api('/api/orders', { method: 'GET' });
-  if (!history || history.error) return;
-  const tbody = document.querySelector('#historyTable tbody');
-  if (!tbody) return;
+  try {
+    console.log('GET /api/orders');
+    const history = await api('/api/orders', { method: 'GET' });
+    console.log('resp GET /api/orders:', history);
+    const tbody = document.querySelector('#historyTable tbody');
+    if (!tbody || history.error) return;
 
-  tbody.innerHTML = '';
-  history.forEach(o => {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${new Date(o.createdAt).toLocaleDateString()}</td>
-      <td>${o.service}</td>
-      <td>${o.quantity}</td>
-      <td>${o.status}</td>
-      <td>${
-        o.reference
-          ? `<button class="btn download-btn" data-order-id="${o.id}" data-reference="${o.reference}">Baixar PDF</button>`
-          : '—'
-      }</td>
-    `;
-    tbody.appendChild(tr);
-  });
-
-  // Listener para todos os botões de download PDF
-  document.querySelectorAll('.download-btn').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const orderId   = btn.getAttribute('data-order-id');
-      const reference = btn.getAttribute('data-reference');
-      try {
-        const res = await fetch(`${API_BASE}/api/orders/${orderId}/invoice`, {
-          headers: { 'Authorization': 'Bearer ' + localStorage.getItem(authTokenKey) }
-        });
-        if (!res.ok) {
-          const err = await res.json();
-          return alert(err.error || 'Erro ao baixar factura');
-        }
-        const blob = await res.blob();  // PDF blob
-        const url  = URL.createObjectURL(blob);
-        const a    = document.createElement('a');
-        a.href     = url;
-        a.download = `factura-${reference}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      } catch (e) {
-        console.error('Erro no download da factura:', e);
-        alert('Falha ao baixar factura');
-      }
+    tbody.innerHTML = '';
+    history.forEach(o => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${new Date(o.createdAt).toLocaleDateString()}</td>
+        <td>${o.service}</td>
+        <td>${o.quantity}</td>
+        <td>${o.status}</td>
+        <td>${
+          o.reference
+            ? `<button class="btn download-btn" data-id="${o.id}" data-ref="${o.reference}">Baixar PDF</button>`
+            : '—'
+        }</td>
+      `;
+      tbody.appendChild(tr);
     });
-  });
+
+    document.querySelectorAll('.download-btn').forEach(btn => {
+      btn.onclick = async () => {
+        const id  = btn.dataset.id;
+        const ref = btn.dataset.ref;
+        try {
+          console.log(`GET /api/orders/${id}/invoice`);
+          const res = await fetch(`${API_BASE}/api/orders/${id}/invoice`, {
+            headers: { 'Authorization': 'Bearer ' + localStorage.getItem(authTokenKey) }
+          });
+          if (!res.ok) {
+            const err = await res.json();
+            return alert(err.error || 'Erro ao baixar factura');
+          }
+          const blob = await res.blob();
+          const url  = URL.createObjectURL(blob);
+          const a    = document.createElement('a');
+          a.href     = url;
+          a.download = `factura-${ref}.pdf`;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(url);
+        } catch (e) {
+          console.error('Erro no download da factura:', e);
+          alert('Falha ao baixar factura');
+        }
+      };
+    });
+  } catch (err) {
+    console.error('Falha ao carregar histórico:', err);
+  }
 }
 
 // Carrega histórico ao abrir a página de reservas
