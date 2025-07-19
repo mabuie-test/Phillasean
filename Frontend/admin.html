@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Painel Admin | PHIL ASEAN</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Ajustes rápidos para o painel */
+    body { padding: 1rem; font-family: Arial, sans-serif; }
+    header { display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; }
+    #controls { display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:1rem; }
+    #controls input, #controls select { padding:0.5rem; font-size:1rem; }
+    table { width:100%; border-collapse: collapse; }
+    th, td { padding:0.75rem; border:1px solid #ccc; text-align:left; }
+    th { background:#0056b3; color:#fff; }
+    .btn { padding:0.4rem 0.8rem; cursor:pointer; }
+    .btn-update { background:#28a745; color:#fff; border:none; }
+    .btn-download { background:#007bff; color:#fff; border:none; }
+    .status-cell.pending   { color: #dc3545; } /* vermelho */
+    .status-cell.in_progress{ color: #ffc107; } /* amarelo */
+    .status-cell.completed { color: #28a745; } /* verde */
+    .history-list { font-size:0.9rem; color:#555; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Painel de Administração</h1>
+    <button id="logoutBtn" class="btn">Logout</button>
+  </header>
+
+  <div id="controls">
+    <input type="text" id="searchInput" placeholder="Buscar por cliente, serviço ou referência…">
+    <select id="statusFilter">
+      <option value="">Todos os Status</option>
+      <option value="pending">Pendente</option>
+      <option value="in_progress">Em Progresso</option>
+      <option value="completed">Concluído</option>
+    </select>
+    <button id="refreshBtn" class="btn">Atualizar Lista</button>
+  </div>
+
+  <table id="adminTable">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Cliente</th>
+        <th>Serviço</th>
+        <th>Qtd.</th>
+        <th>Status</th>
+        <th>Histórico</th>
+        <th>Fatura</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script src="admin.js" defer></script>
+</body>
+</html>
