@@ -180,6 +180,28 @@ async function loadAdmins() {
   attachAdminListeners();
 }
 
+// Carrega e exibe o log de auditoria
+async function loadAuditLog() {
+  console.log('Carregando log de auditoria...');
+  const logs = await api('/api/admin/audit', { method: 'GET' });
+  if (!Array.isArray(logs)) {
+    console.error('loadAuditLog: resposta inválida', logs);
+    return;
+  }
+  auditList.innerHTML = '';
+  logs.forEach(l => {
+    const li = document.createElement('li');
+    const time = new Date(l.timestamp).toLocaleString();
+    const admin = l.admin ? `${l.admin.name} (${l.admin.email})` : '—';
+    const target = l.target ? `${l.target.name} (${l.target.email})` : '—';
+    li.textContent = `${time} — ${admin} → ${l.action} → ${target}`;
+    auditList.appendChild(li);
+  });
+}
+
+
+
+
 function attachAdminListeners() {
   console.log('Anexando listeners de admins...');
   adminList.querySelectorAll('.btn-delete-admin').forEach(btn => {
