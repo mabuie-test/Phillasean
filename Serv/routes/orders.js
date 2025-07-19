@@ -35,8 +35,14 @@ function auth(req, res, next) {
 const transporter = nodemailer.createTransport({
   host: EMAIL_HOST,
   port: EMAIL_PORT,
-  auth: { user: EMAIL_USER, pass: EMAIL_PASS }
-tls: { rejectUnauthorized: false }
+  auth: {
+    user: EMAIL_USER,
+    pass: EMAIL_PASS
+  },
+  tls: {
+    // ignora erros de certificado mismatched
+    rejectUnauthorized: false
+  }
 });
 transporter.verify(err => {
   if (err) console.error('SMTP config inválida:', err);
@@ -133,7 +139,7 @@ router.get('/', auth, async (req, res) => {
 // GET /api/orders/:id/invoice → gera e envia PDF
 router.get('/:id/invoice', auth, async (req, res) => {
   console.log('GET /api/orders/:id/invoice by', req.user);
-  // agora permite clients e admins
+  // permite clients e admins
   if (req.user.role && req.user.role !== 'client' && req.user.role !== 'admin') {
     console.warn('GET invoice bloqueado para role', req.user.role);
     return res.status(403).json({ error: 'Acesso negado' });
