@@ -1,9 +1,10 @@
+// models/Order.js
 const { Schema, model, Types } = require('mongoose');
 
 const OrderSchema = new Schema({
   client:    { type: Types.ObjectId, ref: 'User', required: true },
   details: {
-    services:      [{ type: String }],    // agora é array de strings
+    services:      { type: [String], default: [] },  // aceita múltiplos serviços
     notes:         String,
     vessel:        String,
     port:          String,
