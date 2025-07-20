@@ -44,7 +44,7 @@ router.post('/', auth, async (req, res) => {
     return res.status(403).json({ error: 'Acesso negado' });
   }
 
-  // normaliza services num array
+  // unifica service(s) antigo/novo num array
   let services = [];
   if (Array.isArray(req.body.services) && req.body.services.length) {
     services = req.body.services;
@@ -52,7 +52,7 @@ router.post('/', auth, async (req, res) => {
     services = [req.body.service];
   }
 
-  // cria o pedido, incluindo o telefone
+  // cria pedido
   const doc = await Order.create({
     client: req.user.id,
     details: {
@@ -60,8 +60,7 @@ router.post('/', auth, async (req, res) => {
       notes:         req.body.notes,
       vessel:        req.body.vessel,
       port:          req.body.port,
-      estimatedDate: req.body.date,
-      phone:         req.body.phone    // ← telefone salvo aqui
+      estimatedDate: req.body.date
     }
   });
 
@@ -75,7 +74,7 @@ router.post('/', auth, async (req, res) => {
     order:     doc._id,
     reference,
     dueDate,
-    items:     []
+    items:     []  // opcional: você pode depois detalhar preço por serviço
   });
 
   // notificação por email
@@ -85,7 +84,6 @@ router.post('/', auth, async (req, res) => {
     subject: `Novo pedido ${reference}`,
     html: `
       <p><strong>Cliente:</strong> ${req.body.name || '–'}</p>
-      <p><strong>Telefone:</strong> ${req.body.phone || '–'}</p>
       <p><strong>Serviços:</strong><br>${services.map(s => `• ${s}`).join('<br>')}</p>
       <p><strong>Porto:</strong> ${req.body.port}</p>
       <p><strong>Navio:</strong> ${req.body.vessel}</p>
@@ -104,6 +102,7 @@ router.get('/', auth, async (req, res) => {
 
   const orders = await Order.find({ client: req.user.id }).sort({ createdAt: -1 });
   const data = await Promise.all(orders.map(async o => {
+    // fallback para históricos antigos
     const services = Array.isArray(o.details.services) && o.details.services.length
       ? o.details.services
       : (o.details.service ? [o.details.service] : []);
@@ -114,7 +113,6 @@ router.get('/', auth, async (req, res) => {
       services,
       port:      o.details.port,
       vessel:    o.details.vessel,
-      phone:     o.details.phone,       // ← retorna telefone
       date:      o.details.estimatedDate,
       status:    o.status,
       createdAt: o.createdAt,
@@ -137,6 +135,7 @@ router.get('/:id/invoice', auth, async (req, res) => {
     return res.status(404).json({ error: 'Factura não encontrada' });
   }
 
+  // garante array de serviços
   const services = Array.isArray(order.details.services) && order.details.services.length
     ? order.details.services
     : (order.details.service ? [order.details.service] : []);
@@ -154,7 +153,6 @@ router.get('/:id/invoice', auth, async (req, res) => {
   doc.fontSize(12)
      .text(`Referência: ${inv.reference}`)
      .text(`Data Estimada: ${order.details.estimatedDate.toLocaleDateString()}`)
-     .text(`Telefone: ${order.details.phone || '–'}`)    // ← mostra telefone na fatura
      .text(`Data de Emissão: ${new Date().toLocaleDateString()}`)
      .text(`Vencimento: ${inv.dueDate.toLocaleDateString()}`)
      .moveDown();
