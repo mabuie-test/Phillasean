@@ -32,15 +32,12 @@ router.get('/orders', authAdmin, async (req, res) => {
   try {
     console.log('admin GET /orders by', req.user.id);
     const orders = await Order.find().sort({ createdAt: -1 }).lean();
+
     const data = await Promise.all(orders.map(async o => {
-      // busca dados do cliente
       const user = await User.findById(o.client, 'name email').lean();
-      // histórico de status
       const hist = await History.find({ order: o._id }).sort('changedAt').lean();
-      // referência da fatura
       const inv  = await Invoice.findOne({ order: o._id }, 'reference').lean();
 
-      // monta lista de serviços (compatível com migração de campo único para array)
       const services = Array.isArray(o.details.services) && o.details.services.length
         ? o.details.services
         : (o.details.service ? [o.details.service] : []);
@@ -49,7 +46,7 @@ router.get('/orders', authAdmin, async (req, res) => {
         _id:        o._id,
         client:     user || { name: '—', email: '—' },
         phone:      o.details.phone || '—',
-        services,                                       // <-- aqui
+        services,
         status:     o.status,
         history:    hist || [],
         reference:  inv?.reference || null,
@@ -87,10 +84,6 @@ router.put('/orders/:id', authAdmin, async (req, res) => {
     res.status(500).json({ error: 'Erro interno ao atualizar status' });
   }
 });
-
-// --------------------------------------------------
-// Gestão de administradores
-// --------------------------------------------------
 
 // GET /api/admin/users → lista todos administradores
 router.get('/users', authAdmin, async (req, res) => {
@@ -143,10 +136,6 @@ router.delete('/users/:id', authAdmin, async (req, res) => {
     res.status(500).json({ error: 'Erro interno ao remover administrador' });
   }
 });
-
-// --------------------------------------------------
-// Logs de auditoria
-// --------------------------------------------------
 
 // GET /api/admin/audit → lista logs de auditoria
 router.get('/audit', authAdmin, async (req, res) => {
