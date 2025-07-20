@@ -88,17 +88,15 @@ if (orderForm) {
     try {
       const f = new FormData(orderForm);
       const body = {
-        name:      f.get('name'),
-        company:   f.get('company'),
-        email:     f.get('email'),
-        phone:     f.get('phone'),
-        vessel:    f.get('vessel'),
-        port:      f.get('port'),
-        date:      f.get('date'),
-        service:   f.get('service'),
-        quantity:  parseInt(f.get('quantity'), 10),
-        unitPrice: parseFloat(f.get('unitPrice') || 0),
-        notes:     f.get('notes')
+        name:     f.get('name'),
+        company:  f.get('company'),
+        email:    f.get('email'),
+        phone:    f.get('phone'),
+        vessel:   f.get('vessel'),
+        port:     f.get('port'),
+        date:     f.get('date'),
+        services: f.getAll('services'),  // array de strings
+        notes:    f.get('notes')
       };
       console.log('POST /api/orders', body);
       const json = await api('/api/orders', { method: 'POST', body });
@@ -137,11 +135,15 @@ async function loadOrderHistory() {
 
     tbody.innerHTML = '';
     history.forEach(o => {
+      // monta lista de serviços
+      const servicesHtml = Array.isArray(o.services)
+        ? `<ul>${o.services.map(s => `<li>${s}</li>`).join('')}</ul>`
+        : o.service;
+
       const tr = document.createElement('tr');
       tr.innerHTML = `
         <td>${new Date(o.createdAt).toLocaleDateString()}</td>
-        <td>${o.service}</td>
-        <td>${o.quantity}</td>
+        <td>${servicesHtml}</td>
         <td>${o.status}</td>
         <td>${
           o.reference
