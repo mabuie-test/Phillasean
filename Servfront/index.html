@@ -940,61 +940,74 @@
         </div>
     </section>
 
-    <!-- Order Section -->
-    <section class="section" id="order">
-        <div class="container">
-            <div class="section-title">
-                <h2>Faça Seu Pedido</h2>
-            </div>
-            <form id="orderForm">
-                <div class="form-group">
-                    <label for="name">Nome Completo</label>
-                    <input id="name" name="name" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label for="company">Empresa</label>
-                    <input id="company" name="company" class="form-control">
-                </div>
-                <div class="form-group">
-                    <label for="email">Email</label>
-                    <input id="email" name="email" type="email" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label for="phone">Telefone</label>
-                    <input id="phone" name="phone" type="tel" class="form-control">
-                </div>
-                <div class="form-group">
-                    <label for="vessel">Nome do Navio</label>
-                    <input id="vessel" name="vessel" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label for="port">Porto</label>
-                    <input id="port" name="port" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label for="date">Data Estimada</label>
-                    <input id="date" name="date" type="date" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label for="service">Serviço Desejado</label>
-                    <input id="service" name="service" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label for="quantity">Quantidade</label>
-                    <input id="quantity" name="quantity" type="number" class="form-control" required>
-                </div>
-                <div class="form-group">
-                    <label for="unitPrice">Preço Unitário (Opcional)</label>
-                    <input id="unitPrice" name="unitPrice" type="number" step="0.01" class="form-control">
-                </div>
-                <div class="form-group">
-                    <label for="notes">Observações Adicionais</label>
-                    <textarea id="notes" name="notes" class="form-control"></textarea>
-                </div>
-                <button type="submit" class="btn submit-btn">Enviar Solicitação</button>
-            </form>
+
+  <!-- Order Section -->
+  <section class="section order" id="order">
+    <div class="container">
+      <div class="section-title">
+        <h2>Faça Seu Pedido</h2>
+      </div>
+      <form id="orderForm">
+        <div class="form-group">
+          <label for="name">Nome Completo</label>
+          <input id="name" name="name" class="form-control" required>
         </div>
-    </section>
+        <div class="form-group">
+          <label for="company">Empresa</label>
+          <input id="company" name="company" class="form-control">
+        </div>
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label for="phone">Telefone</label>
+          <input id="phone" name="phone" type="tel" class="form-control">
+        </div>
+        <div class="form-group">
+          <label for="vessel">Nome do Navio</label>
+          <input id="vessel" name="vessel" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label for="port">Porto</label>
+          <select id="port" name="port" class="form-control" required>
+            <option value="">Selecione um porto…</option>
+            <option value="Maputo">Maputo</option>
+            <option value="Beira">Beira</option>
+            <option value="Nacala">Nacala</option>
+            <option value="Pemba">Pemba</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="date">Data Estimada</label>
+          <input id="date" name="date" type="date" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label for="services">Serviços Desejados</label>
+          <select id="services" name="services" multiple class="form-control" required>
+            <option value="Tubos Hidráulicos">Tubos Hidráulicos</option>
+            <option value="Fornecimento de Água Potável">Fornecimento de Água Potável</option>
+            <option value="Garbage Collector">Garbage Collector</option>
+            <option value="Provisões e Mantimentos">Provisões e Mantimentos</option>
+            <option value="Frutas Frescas 1">Frutas Frescas 1</option>
+            <option value="Frutas Frescas 2">Frutas Frescas 2</option>
+            <option value="Frutas Frescas 3">Frutas Frescas 3</option>
+            <option value="Frutas Frescas 4">Frutas Frescas 4</option>
+            <option value="Lubrificantes Marítimos">Lubrificantes Marítimos</option>
+            <option value="Transporte Offshore">Transporte Offshore</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="notes">Observações</label>
+          <textarea id="notes" name="notes" class="form-control"></textarea>
+        </div>
+        <button type="submit" class="btn submit-btn">Enviar Pedido</button>
+      </form>
+    </div>
+  </section>
+
+  
+  
 
     <!-- Contact Section -->
     <section class="section" id="contact">
