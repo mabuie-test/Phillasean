@@ -10,30 +10,38 @@
 </head>
 <body>
   <!-- Navbar com Conta/Login/Register/Área Cliente -->
-  <nav class="navbar">
+  <header>
+  <div class="header-container container">
     <div class="logo">
       <a href="index.html">
-        <img src="assets/phil.jpeg" alt="PHIL ASEAN" style="height:40px; vertical-align:middle;">
+        <img src="assets/phil.jpeg" alt="PHIL ASEAN" id="logo-img">
         PHIL ASEAN
       </a>
     </div>
-    <ul class="nav-links">
+
+    <!-- Botão hambúrguer -->
+    <button class="mobile-menu-btn" id="mobileMenuBtn">
+      <i class="fas fa-bars"></i>
+    </button>
+
+    <ul class="header-nav" id="navLinks">
       <li><a href="index.html">Home</a></li>
       <li><a href="reserva.html">Reservas</a></li>
-        <li class="dropdown">
-    <a href="#" id="accountBtn">Conta ▾</a>
-    <ul class="dropdown-menu" id="accountMenu">
-      <!-- Links para visitante -->
-      <li class="guest"><a href="#" id="loginBtn">Login</a></li>
-      <li class="guest"><a href="#" id="registerBtn">Registar</a></li>
-      <!-- Links para usuário autenticado -->
-      <li class="user" style="display:none;"><a href="#" id="clientAreaBtn">Área do Cliente</a></li>
-      <li class="user" style="display:none;"><a href="#" id="logoutBtn">Logout</a></li>
+
+      <!-- Dropdown “Conta” -->
+      <li class="auth-dropdown">
+        <a href="#" id="accountBtn">Conta <i class="fas fa-caret-down"></i></a>
+        <ul class="auth-dropdown-content" id="accountMenu">
+          <li class="guest"><a href="#" id="loginBtn">Login</a></li>
+          <li class="guest"><a href="#" id="registerBtn">Registar</a></li>
+          <li class="user"><a href="reserva.html" id="clientAreaBtn">Área do Cliente</a></li>
+          <li class="user"><a href="#" id="logoutBtn">Logout</a></li>
+        </ul>
+      </li>
     </ul>
-  </li>
-    </ul>
-  
-  </nav>
+  </div>
+</header>
+
 
   <!-- aqui  Hero, Serviços, Sobre, Pedido, Contato, Footer)  -->
 
