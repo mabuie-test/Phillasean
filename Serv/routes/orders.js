@@ -1,9 +1,9 @@
-const router     = require('express').Router();
-const jwt        = require('jsonwebtoken');
-const Order      = require('../models/Order');
-const History    = require('../models/OrderHistory');
-const Invoice    = require('../models/Invoice');
-const nodemailer = require('nodemailer');
+const router      = require('express').Router();
+const jwt         = require('jsonwebtoken');
+const Order       = require('../models/Order');
+const History     = require('../models/OrderHistory');
+const Invoice     = require('../models/Invoice');
+const nodemailer  = require('nodemailer');
 const PDFDocument = require('pdfkit');
 const {
   JWT_SECRET,
@@ -23,7 +23,6 @@ function auth(req, res, next) {
   }
   try {
     req.user = jwt.verify(token, JWT_SECRET);
-    console.log('auth: usuário', req.user);
     next();
   } catch (err) {
     console.error('auth: token inválido', err);
@@ -32,20 +31,13 @@ function auth(req, res, next) {
 }
 
 // transporter do Nodemailer
-// transporter do Nodemailer
 const transporter = nodemailer.createTransport({
   host: EMAIL_HOST,
   port: EMAIL_PORT,
-  auth: {
-    user: EMAIL_USER,
-    pass: EMAIL_PASS
-  },
-  tls: {
-    rejectUnauthorized: false
-  }
+  auth: { user: EMAIL_USER, pass: EMAIL_PASS },
+  tls: { rejectUnauthorized: false }
 });
 
-// Apenas loga err.message, não o objeto inteiro
 transporter.verify(err => {
   if (err) {
     console.error('SMTP config inválida ou credenciais incorretas:', err.message);
@@ -54,74 +46,57 @@ transporter.verify(err => {
   }
 });
 
-
-
 // POST /api/orders → criar pedido
 router.post('/', auth, async (req, res) => {
-  console.log('POST /api/orders by', req.user);
   if (req.user.role && req.user.role !== 'client') {
-    console.warn('POST /api/orders bloqueado para role', req.user.role);
     return res.status(403).json({ error: 'Acesso negado' });
   }
 
+  // Criar o pedido, agora com array de services
   const doc = await Order.create({
     client: req.user.id,
     details: {
-      service:       req.body.service,
-      quantity:      req.body.quantity,
-      notes:         req.body.notes,
-      vessel:        req.body.vessel,
-      port:          req.body.port,
-      estimatedDate: req.body.date
+      services:       req.body.services || [],
+      notes:          req.body.notes,
+      vessel:         req.body.vessel,
+      port:           req.body.port,
+      estimatedDate:  req.body.date
     }
   });
+
+  // Histórico inicial
   await History.create({ order: doc._id, status: 'pending', by: 'client' });
 
+  // Gerar fatura
   const reference = `PHIL-${Date.now()}-${Math.floor(Math.random() * 9000 + 1000)}`;
+  const dueDate   = new Date(Date.now() + 14 * 24 * 3600 * 1000);
   await Invoice.create({
-    order:   doc._id,
+    order:     doc._id,
     reference,
-    dueDate: new Date(Date.now() + 14 * 24 * 3600 * 1000),
-    items: [{
-      name:      req.body.service,
-      qty:       req.body.quantity,
-      unitPrice: req.body.unitPrice || 0
-    }]
+    dueDate,
+    items: [] // não usamos itens detalhados agora
   });
 
-  let mailError = null;
-  try {
-    await transporter.sendMail({
-      from:    EMAIL_USER,
-      to:      ADMIN_EMAIL,
-      subject: `Novo pedido ${reference}`,
-      html: `
-        <p><strong>Cliente:</strong> ${req.body.name || '–'}</p>
-        <p><strong>Serviço:</strong> ${req.body.service}</p>
-        <p><strong>Quantidade:</strong> ${req.body.quantity}</p>
-        <p><strong>Porto:</strong> ${req.body.port}</p>
-        <p><strong>Navio:</strong> ${req.body.vessel}</p>
-        <p><strong>Referência:</strong> ${reference}</p>
-      `
-    });
-  } catch (err) {
-    console.error('Falha ao enviar email de notificação:', err);
-    mailError = err.message;
-  }
+  // Enviar notificação por email
+  transporter.sendMail({
+    from:    EMAIL_USER,
+    to:      ADMIN_EMAIL,
+    subject: `Novo pedido ${reference}`,
+    html: `
+      <p><strong>Cliente:</strong> ${req.body.name || '–'}</p>
+      <p><strong>Serviços:</strong><br>${(req.body.services || []).map(s => `• ${s}`).join('<br>')}</p>
+      <p><strong>Porto:</strong> ${req.body.port}</p>
+      <p><strong>Navio:</strong> ${req.body.vessel}</p>
+      <p><strong>Referência:</strong> ${reference}</p>
+    `
+  }).catch(err => console.error('Falha ao enviar email de notificação:', err.message));
 
-  res.json({
-    success:   true,
-    orderId:   doc._id,
-    reference,
-    mailError
-  });
+  res.json({ success: true, orderId: doc._id, reference });
 });
 
 // GET /api/orders → histórico do cliente
 router.get('/', auth, async (req, res) => {
-  console.log('GET /api/orders by', req.user);
   if (req.user.role && req.user.role !== 'client') {
-    console.warn('GET /api/orders bloqueado para role', req.user.role);
     return res.status(403).json({ error: 'Acesso negado' });
   }
 
@@ -130,8 +105,7 @@ router.get('/', auth, async (req, res) => {
     const inv = await Invoice.findOne({ order: o._id });
     return {
       id:        o._id,
-      service:   o.details.service,
-      quantity:  o.details.quantity,
+      services:  o.details.services,
       port:      o.details.port,
       vessel:    o.details.vessel,
       date:      o.details.estimatedDate,
@@ -140,43 +114,63 @@ router.get('/', auth, async (req, res) => {
       reference: inv?.reference || null
     };
   }));
+
   res.json(data);
 });
 
 // GET /api/orders/:id/invoice → gera e envia PDF
 router.get('/:id/invoice', auth, async (req, res) => {
-  console.log('GET /api/orders/:id/invoice by', req.user);
-  // permite clients e admins
-  if (req.user.role && req.user.role !== 'client' && req.user.role !== 'admin') {
-    console.warn('GET invoice bloqueado para role', req.user.role);
+  if (req.user.role && !['client','admin'].includes(req.user.role)) {
     return res.status(403).json({ error: 'Acesso negado' });
   }
 
-  const inv = await Invoice.findOne({ order: req.params.id });
-  if (!inv) {
-    console.warn('Invoice não encontrada para order', req.params.id);
+  const order = await Order.findById(req.params.id).lean();
+  const inv   = await Invoice.findOne({ order: order._id }).lean();
+  if (!order || !inv) {
     return res.status(404).json({ error: 'Factura não encontrada' });
   }
 
+  // Cabeçalhos para PDF
   res.setHeader('Content-Type', 'application/pdf');
-  res.setHeader('Content-Disposition', `attachment; filename="factura-${inv.reference}.pdf"`);
+  res.setHeader('Content-Disposition',
+    `attachment; filename="factura-${inv.reference}.pdf"`
+  );
 
   const doc = new PDFDocument({ margin: 50 });
   doc.pipe(res);
 
-  doc.fontSize(20).text('FATURA', { align: 'center' }).moveDown();
-  doc.fontSize(12)
+  // Timbre da empresa
+  doc
+    .fontSize(20)
+    .text('PHIL ASEAN PROVIDER & LOGISTICS', { align: 'center' })
+    .moveDown(1);
+
+  // Cabeçalho da Fatura
+  doc
+    .fontSize(12)
     .text(`Referência: ${inv.reference}`)
+    .text(`Data Estimada: ${order.details.estimatedDate.toLocaleDateString()}`)
     .text(`Data de Emissão: ${new Date().toLocaleDateString()}`)
     .text(`Vencimento: ${inv.dueDate.toLocaleDateString()}`)
     .moveDown();
-  doc.fontSize(14).text('Itens:', { underline: true }).moveDown(0.5);
-  inv.items.forEach(item => {
-    doc.fontSize(12).text(`${item.name}: ${item.qty} × ${item.unitPrice.toFixed(2)} = ${(item.qty * item.unitPrice).toFixed(2)}`);
+
+  // Serviços solicitados
+  doc.fontSize(14).text('Serviços Solicitados:', { underline: true }).moveDown(0.5);
+  order.details.services.forEach(s => {
+    doc.fontSize(12).text(`• ${s}`);
   });
-  const total = inv.items.reduce((sum, i) => sum + i.qty * i.unitPrice, 0);
-  doc.fontSize(14).text(`Total: ${total.toFixed(2)}`, { align: 'right' }).moveDown(2);
-  doc.fontSize(10).text('Obrigado pela preferência!', { align: 'center' });
+  doc.moveDown();
+
+  // Observações
+  if (order.details.notes) {
+    doc.fontSize(12).text('Observações:', { underline: true }).moveDown(0.3);
+    doc.text(order.details.notes).moveDown();
+  }
+
+  // Rodapé
+  doc
+    .fontSize(10)
+    .text('Obrigado pela preferência!', { align: 'center' });
 
   doc.end();
 });
