@@ -1,5 +1,5 @@
 // routes/admin.js
-
+//Mtech
 const router   = require('express').Router();
 const jwt      = require('jsonwebtoken');
 const bcrypt   = require('bcryptjs');
@@ -165,4 +165,3 @@ router.get('/audit', authAdmin, async (req, res) => {
 });
 
 module.exports = router;
-//rueuaihd
