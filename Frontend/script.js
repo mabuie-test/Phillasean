@@ -180,6 +180,7 @@ async function loadOrderHistory() {
   }
 }
 
+
 // Carrega histórico ao abrir a página de reservas
 if (document.getElementById('historyTable')) {
   loadOrderHistory();
