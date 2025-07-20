@@ -20,30 +20,19 @@
     <ul class="nav-links">
       <li><a href="index.html">Home</a></li>
       <li><a href="reserva.html">Reservas</a></li>
-      <li class="dropdown">
-        <a href="#" id="accountBtn">Conta ▾</a>
-        <ul class="dropdown-menu" id="accountMenu">
-          <li><a href="#" id="loginBtn">Login</a></li>
-          <li><a href="#" id="registerBtn">Registar</a></li>
-          <li><a href="#" id="clientAreaBtn">Área do Cliente</a></li>
-          <li><a href="#" id="logoutBtn" style="display:none;">Logout</a></li>
-        </ul>
-      </li>
+        <li class="dropdown">
+    <a href="#" id="accountBtn">Conta ▾</a>
+    <ul class="dropdown-menu" id="accountMenu">
+      <!-- Links para visitante -->
+      <li class="guest"><a href="#" id="loginBtn">Login</a></li>
+      <li class="guest"><a href="#" id="registerBtn">Registar</a></li>
+      <!-- Links para usuário autenticado -->
+      <li class="user" style="display:none;"><a href="#" id="clientAreaBtn">Área do Cliente</a></li>
+      <li class="user" style="display:none;"><a href="#" id="logoutBtn">Logout</a></li>
     </ul>
-    <!-- Componente Contas -->
-<li class="dropdown">
-  <a href="#" id="accountBtn">Conta ▾</a>
-  <ul class="dropdown-menu" id="accountMenu">
-    <!-- Links que aparecem quando o usuário NÃO está logado -->
-    <li class="guest"><a href="#" id="loginBtn">Login</a></li>
-    <li class="guest"><a href="#" id="registerBtn">Registar</a></li>
-
-    <!-- Links que aparecem quando o usuário ESTÁ logado -->
-    <li class="user" style="display:none;"><a href="#" id="clientAreaBtn">Área do Cliente</a></li>
-    <li class="user" style="display:none;"><a href="#" id="logoutBtn">Logout</a></li>
-  </ul>
-</li>
-
+  </li>
+    </ul>
+  
   </nav>
 
   <!-- aqui  Hero, Serviços, Sobre, Pedido, Contato, Footer)  -->
