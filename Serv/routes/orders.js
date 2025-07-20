@@ -82,8 +82,8 @@ router.post('/', auth, async (req, res) => {
 
   // notificação por email
   transporter.sendMail({
-    from:    ADMIN_EMAIL, //EMAIL_USER
-    to:      ADMIN_EMAIL,
+    from:    EMAIL_USER, //EMAIL_USER
+    to:      ADMIN_EMAIL, //ADMIN_EMAIL
     subject: `Novo pedido ${reference}`,
     html: `
       <p><strong>Cliente:</strong> ${req.body.name || '–'}</p>
