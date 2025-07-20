@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PHIL ASEAN PROVIDER & LOGISTICS | Serviços Marítimos em Moçambique</title>
+  <link rel="icon" href="assets/phil.jpeg" type="image/jpeg">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Navbar com Conta/Login/Register/Área Cliente -->
+  <nav class="navbar">
+    <div class="logo">
+      <a href="index.html">
+        <img src="assets/phil.jpeg" alt="PHIL ASEAN" style="height:40px; vertical-align:middle;">
+        PHIL ASEAN
+      </a>
+    </div>
+    <ul class="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="reserva.html">Reservas</a></li>
+      <li class="dropdown">
+        <a href="#" id="accountBtn">Conta ▾</a>
+        <ul class="dropdown-menu" id="accountMenu">
+          <li><a href="#" id="loginBtn">Login</a></li>
+          <li><a href="#" id="registerBtn">Registar</a></li>
+          <li><a href="#" id="clientAreaBtn">Área do Cliente</a></li>
+          <li><a href="#" id="logoutBtn" style="display:none;">Logout</a></li>
+        </ul>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- (aqui inclua todo o conteúdo original do index.html, ex.: Hero, Serviços, Sobre, Pedido, Contato, Footer)  -->
+
+  <!-- Modal de Login / Register -->
+  <div class="modal" id="authModal" style="display:none;">
+    <div class="modal-content">
+      <span class="close" id="authClose">×</span>
+      <div id="registerForm" style="display:none;">
+        <h2>Registar</h2>
+        <input type="text" id="regName" placeholder="Nome" />
+        <input type="email" id="regEmail" placeholder="Email" />
+        <input type="password" id="regPassword" placeholder="Senha" />
+        <button id="registerSubmit">Registar</button>
+      </div>
+      <div id="loginForm">
+        <h2>Login</h2>
+        <input type="email" id="loginEmail" placeholder="Email" />
+        <input type="password" id="loginPassword" placeholder="Senha" />
+        <button id="loginSubmit">Entrar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js" defer></script>
+</body>
+</html>
