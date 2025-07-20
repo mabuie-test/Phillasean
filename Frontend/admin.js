@@ -75,38 +75,45 @@ async function loadAdminOrders() {
 
   console.log('Pedidos após filtro:', filtered);
 
-  // Montar linhas da tabela
-  tbody.innerHTML = '';
-  filtered.forEach(o => {
-    const histHtml = (o.history || []).map(h =>
-      `<li>${new Date(h.changedAt).toLocaleDateString()} — ${h.status} (${h.by})</li>`
-    ).join('');
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${o._id}</td>
-      <td>${o.client.name}<br><small>${o.client.email}</small></td>
-      <td>${o.details?.service || '–'}</td>
-      <td>${o.details?.quantity || '–'}</td>
-      <td class="status-cell ${o.status}">${o.status.replace('_', ' ')}</td>
-      <td><ul class="history-list">${histHtml}</ul></td>
-      <td>
-        <button class="btn btn-download" data-order-id="${o._id}" data-ref="${o.reference}">
-          PDF
-        </button>
-      </td>
-      <td>
-        <select class="status-select" data-order-id="${o._id}">
-          <option value="pending" ${o.status==='pending'?'selected':''}>Pendente</option>
-          <option value="in_progress" ${o.status==='in_progress'?'selected':''}>Em Progresso</option>
-          <option value="completed" ${o.status==='completed'?'selected':''}>Concluído</option>
-        </select>
-        <button class="btn btn-update" data-order-id="${o._id}">OK</button>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
+  // Dentro de loadAdminOrders(), após filtrar e antes de attachActionListeners():
 
-  attachOrderListeners();
+tbody.innerHTML = '';
+filtered.forEach(o => {
+  // monta lista de serviços
+  const servicesHtml = Array.isArray(o.details.services) && o.details.services.length
+    ? `<ul>${o.details.services.map(s => `<li>${s}</li>`).join('')}</ul>`
+    : '—';
+
+  const histHtml = (o.history || []).map(h =>
+    `<li>${new Date(h.changedAt).toLocaleDateString()} — ${h.status} (${h.by})</li>`
+  ).join('');
+
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td>${o._id}</td>
+    <td>${o.client.name}<br><small>${o.client.email}</small></td>
+    <td>${servicesHtml}</td>
+    <td class="status-cell ${o.status}">${o.status.replace('_',' ')}</td>
+    <td><ul class="history-list">${histHtml}</ul></td>
+    <td>
+      <button class="btn btn-download" data-order-id="${o._id}" data-ref="${o.reference}">
+        PDF
+      </button>
+    </td>
+    <td>
+      <select class="status-select" data-id="${o._id}">
+        <option value="pending"   ${o.status==='pending'   ? 'selected':''}>Pendente</option>
+        <option value="in_progress"${o.status==='in_progress'? 'selected':''}>Em Progresso</option>
+        <option value="completed" ${o.status==='completed' ? 'selected':''}>Concluído</option>
+      </select>
+      <button class="btn btn-update" data-id="${o._id}">OK</button>
+    </td>
+  `;
+  tbody.appendChild(tr);
+});
+
+attachActionListeners();
+
 }
 
 function attachOrderListeners() {
