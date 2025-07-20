@@ -1,13 +1,20 @@
 // admin.js
 
 console.log('⚙️ admin.js carregado');
-const auditList = document.getElementById('auditList');
+
 const API_BASE       = 'https://phillaseanbackend.onrender.com';
 const authTokenKey   = 'phil_token';
+const auditList      = document.getElementById('auditList');
+const tbody          = document.querySelector('#adminTable tbody');
+const searchInput    = document.getElementById('searchInput');
+const statusFilter   = document.getElementById('statusFilter');
+const refreshBtn     = document.getElementById('refreshBtn');
+const createAdminForm = document.getElementById('createAdminForm');
+const adminList       = document.getElementById('adminList');
 
 // Helper para chamadas à API com tratamento de 401
 async function api(path, opts = {}) {
-  console.log(`→ api: ${opts.method||'GET'} ${path}`, opts.body||'');
+  console.log(`→ API ${opts.method||'GET'} ${path}`, opts.body||'');
   const headers = opts.headers || {};
   const token = localStorage.getItem(authTokenKey);
   if (token) headers['Authorization'] = 'Bearer ' + token;
@@ -20,74 +27,69 @@ async function api(path, opts = {}) {
   });
 
   if (res.status === 401) {
-    console.warn('← api: 401 Não autorizado');
+    console.warn('← API: 401 Não autorizado');
     window.location.href = 'login.html';
     return;
   }
+
   const data = await res.json();
-  console.log('← api resposta:', data);
+  console.log('← API resposta:', data);
   return data;
 }
 
 // Logout
 document.getElementById('logoutBtn').addEventListener('click', () => {
-  console.log('Logout clicado');
   localStorage.removeItem(authTokenKey);
   window.location.href = 'login.html';
 });
 
-// Elementos da interface de pedidos
-const tbody        = document.querySelector('#adminTable tbody');
-const searchInput  = document.getElementById('searchInput');
-const statusFilter = document.getElementById('statusFilter');
-const refreshBtn   = document.getElementById('refreshBtn');
-
-// Elementos da interface de gestão de admins
-const createAdminForm = document.getElementById('createAdminForm');
-const adminList       = document.getElementById('adminList');
-
 // --------------------------
-// Funções de pedidos
+// Funções de Pedidos
 // --------------------------
 async function loadAdminOrders() {
   console.log('Carregando pedidos de admin...');
-  const orders = await api('/api/admin/orders', { method: 'GET' });
+  let orders = await api('/api/admin/orders', { method: 'GET' });
   if (!Array.isArray(orders)) {
     console.error('loadAdminOrders: orders não é array', orders);
     return;
   }
 
   // Filtrar por status
-  let filtered = statusFilter.value
-    ? orders.filter(o => o.status === statusFilter.value)
-    : orders.slice();
+  if (statusFilter.value) {
+    orders = orders.filter(o => o.status === statusFilter.value);
+  }
 
   // Buscar por texto
   const q = searchInput.value.trim().toLowerCase();
   if (q) {
-    filtered = filtered.filter(o =>
+    orders = orders.filter(o =>
       (o.client.name || '').toLowerCase().includes(q) ||
       (o.client.email || '').toLowerCase().includes(q) ||
-      (o.details?.service || '').toLowerCase().includes(q) ||
+      Array.isArray(o.details.services) &&
+        o.details.services.some(s => s.toLowerCase().includes(q)) ||
       (o.reference || '').toLowerCase().includes(q)
     );
   }
 
-  console.log('Pedidos após filtro:', filtered);
-
-  // Montar linhas da tabela
+  // Renderizar
   tbody.innerHTML = '';
-  filtered.forEach(o => {
+  orders.forEach(o => {
+    // Lista de serviços
+    const servicesHtml = Array.isArray(o.details.services) && o.details.services.length
+      ? `<ul>${o.details.services.map(s => `<li>${s}</li>`).join('')}</ul>`
+      : '—';
+
+    // Histórico resumido
     const histHtml = (o.history || []).map(h =>
       `<li>${new Date(h.changedAt).toLocaleDateString()} — ${h.status} (${h.by})</li>`
     ).join('');
+
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td>${o._id}</td>
       <td>${o.client.name}<br><small>${o.client.email}</small></td>
-      <td>${o.details?.service || '–'}</td>
-      <td>${o.details?.quantity || '–'}</td>
-      <td class="status-cell ${o.status}">${o.status.replace('_', ' ')}</td>
+      <td>${servicesHtml}</td>
+      <td class="status-cell ${o.status}">${o.status.replace('_',' ')}</td>
       <td><ul class="history-list">${histHtml}</ul></td>
       <td>
         <button class="btn btn-download" data-order-id="${o._id}" data-ref="${o.reference}">
@@ -110,15 +112,13 @@ async function loadAdminOrders() {
 }
 
 function attachOrderListeners() {
-  console.log('Anexando listeners de pedidos...');
   // Atualizar status
   tbody.querySelectorAll('.btn-update').forEach(btn => {
     btn.onclick = async () => {
-      const orderId = btn.dataset.orderId;
-      const select  = tbody.querySelector(`.status-select[data-order-id="${orderId}"]`);
-      const status  = select.value;
-      console.log(`Atualizando status do pedido ${orderId} para ${status}`);
-      const resp = await api(`/api/admin/orders/${orderId}`, {
+      const id = btn.dataset.orderId;
+      const select = tbody.querySelector(`.status-select[data-order-id="${id}"]`);
+      const status = select.value;
+      const resp = await api(`/api/admin/orders/${id}`, {
         method: 'PUT',
         body: { status }
       });
@@ -134,15 +134,13 @@ function attachOrderListeners() {
   // Download de PDF
   tbody.querySelectorAll('.btn-download').forEach(btn => {
     btn.onclick = async () => {
-      const orderId = btn.dataset.orderId;
-      const ref     = btn.dataset.ref;
-      console.log(`Baixando factura ${ref} (order ${orderId})`);
-      const res = await fetch(`${API_BASE}/api/orders/${orderId}/invoice`, {
+      const id  = btn.dataset.orderId;
+      const ref = btn.dataset.ref;
+      const res = await fetch(`${API_BASE}/api/orders/${id}/invoice`, {
         headers: { 'Authorization': 'Bearer ' + localStorage.getItem(authTokenKey) }
       });
       if (!res.ok) {
         const err = await res.json();
-        console.error('Erro no fetch da factura:', err);
         return alert(err.error || 'Erro ao baixar factura');
       }
       const blob = await res.blob();
@@ -159,10 +157,10 @@ function attachOrderListeners() {
 }
 
 // --------------------------
-// Funções de gestão de Admins
+// Funções de Gestão de Admins
 // --------------------------
 async function loadAdmins() {
-  console.log('Carregando lista de administradores...');
+  console.log('Carregando administradores...');
   const admins = await api('/api/admin/users', { method: 'GET' });
   if (!Array.isArray(admins)) {
     console.error('loadAdmins: resposta inválida', admins);
@@ -180,36 +178,12 @@ async function loadAdmins() {
   attachAdminListeners();
 }
 
-// Carrega e exibe o log de auditoria
-async function loadAuditLog() {
-  console.log('Carregando log de auditoria...');
-  const logs = await api('/api/admin/audit', { method: 'GET' });
-  if (!Array.isArray(logs)) {
-    console.error('loadAuditLog: resposta inválida', logs);
-    return;
-  }
-  auditList.innerHTML = '';
-  logs.forEach(l => {
-    const li = document.createElement('li');
-    const time = new Date(l.timestamp).toLocaleString();
-    const admin = l.admin ? `${l.admin.name} (${l.admin.email})` : '—';
-    const target = l.target ? `${l.target.name} (${l.target.email})` : '—';
-    li.textContent = `${time} — ${admin} → ${l.action} → ${target}`;
-    auditList.appendChild(li);
-  });
-}
-
-
-
-
 function attachAdminListeners() {
-  console.log('Anexando listeners de admins...');
   adminList.querySelectorAll('.btn-delete-admin').forEach(btn => {
     btn.onclick = async () => {
-      const adminId = btn.dataset.adminId;
+      const id = btn.dataset.adminId;
       if (!confirm('Remover este administrador?')) return;
-      console.log(`Removendo admin ${adminId}`);
-      const resp = await api(`/api/admin/users/${adminId}`, { method: 'DELETE' });
+      const resp = await api(`/api/admin/users/${id}`, { method: 'DELETE' });
       if (resp?.success) {
         alert('Administrador removido');
         loadAdmins();
@@ -229,7 +203,6 @@ createAdminForm.addEventListener('submit', async e => {
     password: f.get('password'),
     secret:   f.get('secret')
   };
-  console.log('Criando novo admin:', body);
   const resp = await api('/api/admin/users', { method: 'POST', body });
   if (resp?.success) {
     alert('Administrador criado');
@@ -240,12 +213,34 @@ createAdminForm.addEventListener('submit', async e => {
   }
 });
 
-// Eventos de filtro e busca para pedidos
+// --------------------------
+// Função de Auditoria
+// --------------------------
+async function loadAuditLog() {
+  console.log('Carregando log de auditoria...');
+  const logs = await api('/api/admin/audit', { method: 'GET' });
+  if (!Array.isArray(logs)) {
+    console.error('loadAuditLog: resposta inválida', logs);
+    return;
+  }
+  auditList.innerHTML = '';
+  logs.forEach(l => {
+    const li = document.createElement('li');
+    const time = new Date(l.timestamp).toLocaleString();
+    const admin = l.admin ? `${l.admin.name} (${l.admin.email})` : '—';
+    const target = l.target ? `${l.target.name || l.target.toString()}` : '—';
+    li.textContent = `${time} — ${admin} → ${l.action} → ${target}`;
+    auditList.appendChild(li);
+  });
+}
+
+// --------------------------
+// Eventos e Inicialização
+// --------------------------
 searchInput.addEventListener('input', loadAdminOrders);
 statusFilter.addEventListener('change', loadAdminOrders);
 refreshBtn.addEventListener('click', loadAdminOrders);
 
-// Inicialização
 (async () => {
   await loadAdminOrders();
   await loadAdmins();
