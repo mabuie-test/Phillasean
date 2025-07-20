@@ -18,15 +18,13 @@ const {
 function auth(req, res, next) {
   const token = req.headers.authorization?.split(' ')[1];
   if (!token) {
-    console.warn('auth: token ausente');
     return res.status(401).json({ error: 'Não autorizado' });
   }
   try {
     req.user = jwt.verify(token, JWT_SECRET);
     next();
-  } catch (err) {
-    console.error('auth: token inválido', err);
-    res.status(401).json({ error: 'Token inválido' });
+  } catch {
+    return res.status(401).json({ error: 'Token inválido' });
   }
 }
 
@@ -40,7 +38,7 @@ const transporter = nodemailer.createTransport({
 
 transporter.verify(err => {
   if (err) {
-    console.error('SMTP config inválida ou credenciais incorretas:', err.message);
+    console.error('SMTP inválido:', err.message);
   } else {
     console.log('SMTP pronto para enviar emails');
   }
@@ -52,46 +50,46 @@ router.post('/', auth, async (req, res) => {
     return res.status(403).json({ error: 'Acesso negado' });
   }
 
-  // Criar o pedido, agora com array de services
+  // 1) Cria o pedido com array de services
   const doc = await Order.create({
     client: req.user.id,
     details: {
-      services:       req.body.services || [],
-      notes:          req.body.notes,
-      vessel:         req.body.vessel,
-      port:           req.body.port,
-      estimatedDate:  req.body.date
+      services:      req.body.services || [],
+      notes:         req.body.notes,
+      vessel:        req.body.vessel,
+      port:          req.body.port,
+      estimatedDate: req.body.date
     }
   });
 
-  // Histórico inicial
+  // 2) Histórico inicial
   await History.create({ order: doc._id, status: 'pending', by: 'client' });
 
-  // Gerar fatura
-  const reference = `PHIL-${Date.now()}-${Math.floor(Math.random() * 9000 + 1000)}`;
-  const dueDate   = new Date(Date.now() + 14 * 24 * 3600 * 1000);
+  // 3) Gera fatura básica
+  const reference = `PHIL-${Date.now()}-${Math.floor(Math.random()*9000+1000)}`;
+  const dueDate   = new Date(Date.now() + 14*24*3600*1000);
   await Invoice.create({
     order:     doc._id,
     reference,
     dueDate,
-    items: [] // não usamos itens detalhados agora
+    items: []  // itens não detalhados neste modelo
   });
 
-  // Enviar notificação por email
+  // 4) Notificação por email (async, sem bloquear)
   transporter.sendMail({
     from:    EMAIL_USER,
     to:      ADMIN_EMAIL,
     subject: `Novo pedido ${reference}`,
     html: `
       <p><strong>Cliente:</strong> ${req.body.name || '–'}</p>
-      <p><strong>Serviços:</strong><br>${(req.body.services || []).map(s => `• ${s}`).join('<br>')}</p>
+      <p><strong>Serviços:</strong><br>${(req.body.services||[]).map(s => `• ${s}`).join('<br>')}</p>
       <p><strong>Porto:</strong> ${req.body.port}</p>
       <p><strong>Navio:</strong> ${req.body.vessel}</p>
       <p><strong>Referência:</strong> ${reference}</p>
     `
-  }).catch(err => console.error('Falha ao enviar email de notificação:', err.message));
+  }).catch(err => console.error('Erro ao notificar por email:', err.message));
 
-  res.json({ success: true, orderId: doc._id, reference });
+  return res.json({ success: true, orderId: doc._id, reference });
 });
 
 // GET /api/orders → histórico do cliente
@@ -115,7 +113,7 @@ router.get('/', auth, async (req, res) => {
     };
   }));
 
-  res.json(data);
+  return res.json(data);
 });
 
 // GET /api/orders/:id/invoice → gera e envia PDF
@@ -130,31 +128,24 @@ router.get('/:id/invoice', auth, async (req, res) => {
     return res.status(404).json({ error: 'Factura não encontrada' });
   }
 
-  // Cabeçalhos para PDF
   res.setHeader('Content-Type', 'application/pdf');
-  res.setHeader('Content-Disposition',
-    `attachment; filename="factura-${inv.reference}.pdf"`
-  );
+  res.setHeader('Content-Disposition', `attachment; filename="factura-${inv.reference}.pdf"`);
 
   const doc = new PDFDocument({ margin: 50 });
   doc.pipe(res);
 
-  // Timbre da empresa
-  doc
-    .fontSize(20)
-    .text('PHIL ASEAN PROVIDER & LOGISTICS', { align: 'center' })
-    .moveDown(1);
+  // Timbre
+  doc.fontSize(20).text('PHIL ASEAN PROVIDER & LOGISTICS', { align: 'center' }).moveDown(1);
 
-  // Cabeçalho da Fatura
-  doc
-    .fontSize(12)
-    .text(`Referência: ${inv.reference}`)
-    .text(`Data Estimada: ${order.details.estimatedDate.toLocaleDateString()}`)
-    .text(`Data de Emissão: ${new Date().toLocaleDateString()}`)
-    .text(`Vencimento: ${inv.dueDate.toLocaleDateString()}`)
-    .moveDown();
+  // Cabeçalho
+  doc.fontSize(12)
+     .text(`Referência: ${inv.reference}`)
+     .text(`Data Estimada: ${order.details.estimatedDate.toLocaleDateString()}`)
+     .text(`Data de Emissão: ${new Date().toLocaleDateString()}`)
+     .text(`Vencimento: ${inv.dueDate.toLocaleDateString()}`)
+     .moveDown();
 
-  // Serviços solicitados
+  // Serviços
   doc.fontSize(14).text('Serviços Solicitados:', { underline: true }).moveDown(0.5);
   order.details.services.forEach(s => {
     doc.fontSize(12).text(`• ${s}`);
@@ -168,9 +159,7 @@ router.get('/:id/invoice', auth, async (req, res) => {
   }
 
   // Rodapé
-  doc
-    .fontSize(10)
-    .text('Obrigado pela preferência!', { align: 'center' });
+  doc.fontSize(10).text('Obrigado pela preferência!', { align: 'center' });
 
   doc.end();
 });
