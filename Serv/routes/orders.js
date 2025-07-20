@@ -1,11 +1,9 @@
-//mtech
-// routa orders
-const router      = require('express').Router();
-const jwt         = require('jsonwebtoken');
-const Order       = require('../models/Order');
-const History     = require('../models/OrderHistory');
-const Invoice     = require('../models/Invoice');
-const nodemailer  = require('nodemailer');
+const router     = require('express').Router();
+const jwt        = require('jsonwebtoken');
+const Order      = require('../models/Order');
+const History    = require('../models/OrderHistory');
+const Invoice    = require('../models/Invoice');
+const nodemailer = require('nodemailer');
 const PDFDocument = require('pdfkit');
 const {
   JWT_SECRET,
@@ -19,100 +17,121 @@ const {
 // middleware para extrair e validar JWT
 function auth(req, res, next) {
   const token = req.headers.authorization?.split(' ')[1];
-  if (!token) return res.status(401).json({ error: 'Não autorizado' });
+  if (!token) {
+    console.warn('auth: token ausente');
+    return res.status(401).json({ error: 'Não autorizado' });
+  }
   try {
     req.user = jwt.verify(token, JWT_SECRET);
+    console.log('auth: usuário', req.user);
     next();
-  } catch {
+  } catch (err) {
+    console.error('auth: token inválido', err);
     res.status(401).json({ error: 'Token inválido' });
   }
 }
 
 // transporter do Nodemailer
+// transporter do Nodemailer
 const transporter = nodemailer.createTransport({
   host: EMAIL_HOST,
   port: EMAIL_PORT,
-  auth: { user: EMAIL_USER, pass: EMAIL_PASS },
-  tls: { rejectUnauthorized: false }
+  auth: {
+    user: EMAIL_USER,
+    pass: EMAIL_PASS
+  },
+  tls: {
+    rejectUnauthorized: false
+  }
 });
+
+// Apenas loga err.message, não o objeto inteiro
 transporter.verify(err => {
-  if (err) console.error('SMTP inválido:', err.message);
-  else     console.log('SMTP pronto para enviar emails');
+  if (err) {
+    console.error('SMTP config inválida ou credenciais incorretas:', err.message);
+  } else {
+    console.log('SMTP pronto para enviar emails');
+  }
 });
+
+
 
 // POST /api/orders → criar pedido
 router.post('/', auth, async (req, res) => {
+  console.log('POST /api/orders by', req.user);
   if (req.user.role && req.user.role !== 'client') {
+    console.warn('POST /api/orders bloqueado para role', req.user.role);
     return res.status(403).json({ error: 'Acesso negado' });
   }
 
-  // unifica service(s) antigo/novo num array
-  let services = [];
-  if (Array.isArray(req.body.services) && req.body.services.length) {
-    services = req.body.services;
-  } else if (req.body.service) {
-    services = [req.body.service];
-  }
-
-  // cria pedido
   const doc = await Order.create({
     client: req.user.id,
     details: {
-      services,
+      service:       req.body.service,
+      quantity:      req.body.quantity,
       notes:         req.body.notes,
       vessel:        req.body.vessel,
       port:          req.body.port,
       estimatedDate: req.body.date
     }
   });
-
-  // histórico inicial
   await History.create({ order: doc._id, status: 'pending', by: 'client' });
 
-  // gera fatura
-  const reference = `PHIL-${Date.now()}-${Math.floor(Math.random()*9000+1000)}`;
-  const dueDate   = new Date(Date.now() + 14*24*3600*1000);
+  const reference = `PHIL-${Date.now()}-${Math.floor(Math.random() * 9000 + 1000)}`;
   await Invoice.create({
-    order:     doc._id,
+    order:   doc._id,
     reference,
-    dueDate,
-    items:     []  // opcional: você pode depois detalhar preço por serviço
+    dueDate: new Date(Date.now() + 14 * 24 * 3600 * 1000),
+    items: [{
+      name:      req.body.service,
+      qty:       req.body.quantity,
+      unitPrice: req.body.unitPrice || 0
+    }]
   });
 
-  // notificação por email
-  transporter.sendMail({
-    from:    EMAIL_USER,
-    to:      ADMIN_EMAIL,
-    subject: `Novo pedido ${reference}`,
-    html: `
-      <p><strong>Cliente:</strong> ${req.body.name || '–'}</p>
-      <p><strong>Serviços:</strong><br>${services.map(s => `• ${s}`).join('<br>')}</p>
-      <p><strong>Porto:</strong> ${req.body.port}</p>
-      <p><strong>Navio:</strong> ${req.body.vessel}</p>
-      <p><strong>Referência:</strong> ${reference}</p>
-    `
-  }).catch(err => console.error('Erro email:', err.message));
+  let mailError = null;
+  try {
+    await transporter.sendMail({
+      from:    EMAIL_USER,
+      to:      ADMIN_EMAIL,
+      subject: `Novo pedido ${reference}`,
+      html: `
+        <p><strong>Cliente:</strong> ${req.body.name || '–'}</p>
+        <p><strong>Serviço:</strong> ${req.body.service}</p>
+        <p><strong>Quantidade:</strong> ${req.body.quantity}</p>
+        <p><strong>Porto:</strong> ${req.body.port}</p>
+        <p><strong>Navio:</strong> ${req.body.vessel}</p>
+        <p><strong>Referência:</strong> ${reference}</p>
+      `
+    });
+  } catch (err) {
+    console.error('Falha ao enviar email de notificação:', err);
+    mailError = err.message;
+  }
 
-  res.json({ success: true, orderId: doc._id, reference });
+  res.json({
+    success:   true,
+    orderId:   doc._id,
+    reference,
+    mailError
+  });
 });
 
 // GET /api/orders → histórico do cliente
 router.get('/', auth, async (req, res) => {
+  console.log('GET /api/orders by', req.user);
   if (req.user.role && req.user.role !== 'client') {
+    console.warn('GET /api/orders bloqueado para role', req.user.role);
     return res.status(403).json({ error: 'Acesso negado' });
   }
 
   const orders = await Order.find({ client: req.user.id }).sort({ createdAt: -1 });
   const data = await Promise.all(orders.map(async o => {
-    // fallback para históricos antigos
-    const services = Array.isArray(o.details.services) && o.details.services.length
-      ? o.details.services
-      : (o.details.service ? [o.details.service] : []);
-
     const inv = await Invoice.findOne({ order: o._id });
     return {
       id:        o._id,
-      services,
+      service:   o.details.service,
+      quantity:  o.details.quantity,
       port:      o.details.port,
       vessel:    o.details.vessel,
       date:      o.details.estimatedDate,
@@ -121,26 +140,23 @@ router.get('/', auth, async (req, res) => {
       reference: inv?.reference || null
     };
   }));
-
   res.json(data);
 });
 
 // GET /api/orders/:id/invoice → gera e envia PDF
 router.get('/:id/invoice', auth, async (req, res) => {
-  if (req.user.role && !['client','admin'].includes(req.user.role)) {
+  console.log('GET /api/orders/:id/invoice by', req.user);
+  // permite clients e admins
+  if (req.user.role && req.user.role !== 'client' && req.user.role !== 'admin') {
+    console.warn('GET invoice bloqueado para role', req.user.role);
     return res.status(403).json({ error: 'Acesso negado' });
   }
 
-  const order = await Order.findById(req.params.id).lean();
-  const inv   = await Invoice.findOne({ order: order._id }).lean();
-  if (!order || !inv) {
+  const inv = await Invoice.findOne({ order: req.params.id });
+  if (!inv) {
+    console.warn('Invoice não encontrada para order', req.params.id);
     return res.status(404).json({ error: 'Factura não encontrada' });
   }
-
-  // garante array de serviços
-  const services = Array.isArray(order.details.services) && order.details.services.length
-    ? order.details.services
-    : (order.details.service ? [order.details.service] : []);
 
   res.setHeader('Content-Type', 'application/pdf');
   res.setHeader('Content-Disposition', `attachment; filename="factura-${inv.reference}.pdf"`);
@@ -148,30 +164,20 @@ router.get('/:id/invoice', auth, async (req, res) => {
   const doc = new PDFDocument({ margin: 50 });
   doc.pipe(res);
 
-  // Timbre
-  doc.fontSize(20).text('PHIL ASEAN PROVIDER & LOGISTICS', { align: 'center' }).moveDown(1);
-
-  // Cabeçalho
+  doc.fontSize(20).text('FATURA', { align: 'center' }).moveDown();
   doc.fontSize(12)
-     .text(`Referência: ${inv.reference}`)
-     .text(`Data Estimada: ${order.details.estimatedDate.toLocaleDateString()}`)
-     .text(`Data de Emissão: ${new Date().toLocaleDateString()}`)
-     .text(`Vencimento: ${inv.dueDate.toLocaleDateString()}`)
-     .moveDown();
-
-  // Serviços
-  doc.fontSize(14).text('Serviços Solicitados:', { underline: true }).moveDown(0.5);
-  services.forEach(s => doc.fontSize(12).text(`• ${s}`));
-  doc.moveDown();
-
-  // Observações
-  if (order.details.notes) {
-    doc.fontSize(12).text('Observações:', { underline: true }).moveDown(0.3);
-    doc.text(order.details.notes).moveDown();
-  }
-
-  // Rodapé
+    .text(`Referência: ${inv.reference}`)
+    .text(`Data de Emissão: ${new Date().toLocaleDateString()}`)
+    .text(`Vencimento: ${inv.dueDate.toLocaleDateString()}`)
+    .moveDown();
+  doc.fontSize(14).text('Itens:', { underline: true }).moveDown(0.5);
+  inv.items.forEach(item => {
+    doc.fontSize(12).text(`${item.name}: ${item.qty} × ${item.unitPrice.toFixed(2)} = ${(item.qty * item.unitPrice).toFixed(2)}`);
+  });
+  const total = inv.items.reduce((sum, i) => sum + i.qty * i.unitPrice, 0);
+  doc.fontSize(14).text(`Total: ${total.toFixed(2)}`, { align: 'right' }).moveDown(2);
   doc.fontSize(10).text('Obrigado pela preferência!', { align: 'center' });
+
   doc.end();
 });
 
