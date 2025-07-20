@@ -102,7 +102,7 @@ router.get('/', auth, async (req, res) => {
 
   const orders = await Order.find({ client: req.user.id }).sort({ createdAt: -1 });
   const data = await Promise.all(orders.map(async o => {
-    // fallback para históricos antigos
+    // fallback para pedidos antigos
     const services = Array.isArray(o.details.services) && o.details.services.length
       ? o.details.services
       : (o.details.service ? [o.details.service] : []);
@@ -135,11 +135,12 @@ router.get('/:id/invoice', auth, async (req, res) => {
     return res.status(404).json({ error: 'Factura não encontrada' });
   }
 
-  // garante array de serviços
+  // confirma array de serviços
   const services = Array.isArray(order.details.services) && order.details.services.length
     ? order.details.services
     : (order.details.service ? [order.details.service] : []);
 
+  // cabeçalhos para PDF
   res.setHeader('Content-Type', 'application/pdf');
   res.setHeader('Content-Disposition', `attachment; filename="factura-${inv.reference}.pdf"`);
 
@@ -147,9 +148,11 @@ router.get('/:id/invoice', auth, async (req, res) => {
   doc.pipe(res);
 
   // Timbre
-  doc.fontSize(20).text('PHIL ASEAN PROVIDER & LOGISTICS', { align: 'center' }).moveDown(1);
+  doc.fontSize(20)
+     .text('PHIL ASEAN PROVIDER & LOGISTICS', { align: 'center' })
+     .moveDown(1);
 
-  // Cabeçalho
+  // Cabeçalho da fatura
   doc.fontSize(12)
      .text(`Referência: ${inv.reference}`)
      .text(`Data Estimada: ${order.details.estimatedDate.toLocaleDateString()}`)
@@ -157,19 +160,25 @@ router.get('/:id/invoice', auth, async (req, res) => {
      .text(`Vencimento: ${inv.dueDate.toLocaleDateString()}`)
      .moveDown();
 
-  // Serviços
-  doc.fontSize(14).text('Serviços Solicitados:', { underline: true }).moveDown(0.5);
+  // Serviços solicitados
+  doc.fontSize(14)
+     .text('Serviços Solicitados:', { underline: true })
+     .moveDown(0.5);
   services.forEach(s => doc.fontSize(12).text(`• ${s}`));
   doc.moveDown();
 
   // Observações
   if (order.details.notes) {
-    doc.fontSize(12).text('Observações:', { underline: true }).moveDown(0.3);
+    doc.fontSize(12)
+       .text('Observações:', { underline: true })
+       .moveDown(0.3);
     doc.text(order.details.notes).moveDown();
   }
 
   // Rodapé
-  doc.fontSize(10).text('Obrigado pela preferência!', { align: 'center' });
+  doc.fontSize(10)
+     .text('Obrigado pela preferência!', { align: 'center' });
+
   doc.end();
 });
 
