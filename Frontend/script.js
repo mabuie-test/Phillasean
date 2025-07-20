@@ -35,7 +35,6 @@ if (registerForm) {
       password: f.get('password')
     };
     const json = await api('/api/auth/register', { method: 'POST', body });
-    console.log('resp POST /api/auth/register:', json);
     if (json.token) {
       localStorage.setItem(authTokenKey, json.token);
       window.location.href = 'reserva.html';
@@ -56,7 +55,6 @@ if (loginForm) {
       password: f.get('password')
     };
     const json = await api('/api/auth/login', { method: 'POST', body });
-    console.log('resp POST /api/auth/login:', json);
     if (!json.token) {
       return alert(json.error || 'Erro no login');
     }
@@ -98,9 +96,7 @@ if (orderForm) {
         services: f.getAll('services'),  // array de strings
         notes:    f.get('notes')
       };
-      console.log('POST /api/orders', body);
       const json = await api('/api/orders', { method: 'POST', body });
-      console.log('resp POST /api/orders:', json);
       if (json.success) {
         alert(`Pedido enviado! Referência: ${json.reference}`);
         orderForm.reset();
@@ -127,18 +123,16 @@ if (logoutBtn) {
 // Histórico de Pedidos com download de PDF
 async function loadOrderHistory() {
   try {
-    console.log('GET /api/orders');
     const history = await api('/api/orders', { method: 'GET' });
-    console.log('resp GET /api/orders:', history);
     const tbody = document.querySelector('#historyTable tbody');
     if (!tbody || history.error) return;
 
     tbody.innerHTML = '';
     history.forEach(o => {
-      // monta lista de serviços
-      const servicesHtml = Array.isArray(o.services)
+      // monta lista de serviços ou exibe '—' se não houver
+      const servicesHtml = Array.isArray(o.services) && o.services.length
         ? `<ul>${o.services.map(s => `<li>${s}</li>`).join('')}</ul>`
-        : o.service;
+        : '—';
 
       const tr = document.createElement('tr');
       tr.innerHTML = `
@@ -159,7 +153,6 @@ async function loadOrderHistory() {
         const id  = btn.dataset.id;
         const ref = btn.dataset.ref;
         try {
-          console.log(`GET /api/orders/${id}/invoice`);
           const res = await fetch(`${API_BASE}/api/orders/${id}/invoice`, {
             headers: { 'Authorization': 'Bearer ' + localStorage.getItem(authTokenKey) }
           });
