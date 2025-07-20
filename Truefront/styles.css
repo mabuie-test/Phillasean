@@ -341,3 +341,81 @@ footer {
     }
     .footer-col { text-align: center; }
 }
+/* ===== Header & Nav ===== */
+header {
+  background: var(--primary);
+  position: fixed;
+  width: 100%;
+  top: 0;
+  z-index: 1000;
+}
+.header-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+}
+.header-container .logo a {
+  display: flex;
+  align-items: center;
+  color: #fff;
+  text-decoration: none;
+  font-size: 1.5rem;
+}
+#logo-img {
+  height: 40px;
+  margin-right: 0.5rem;
+}
+
+/* ===== Navigation Links ===== */
+.header-nav {
+  list-style: none;
+  display: flex;
+  align-items: center;
+}
+.header-nav li {
+  margin-left: 1.5rem;
+  position: relative;
+}
+.header-nav a {
+  color: #fff;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+/* ===== Mobile Menu Button ===== */
+.mobile-menu-btn {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #fff;
+}
+
+/* ===== Dropdown “Conta” ===== */
+.auth-dropdown-content {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: #fff;
+  list-style: none;
+  padding: 0.5rem 0;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  z-index: 1000;
+}
+.auth-dropdown-content li {
+  margin: 0.25rem 0;
+}
+.auth-dropdown-content a {
+  display: block;
+  padding: 0.5rem 1rem;
+  color: var(--dark);
+  text-decoration: none;
+}
+
+/* só exibe quando .show no menu */
+.auth-dropdown-content.show {
+  display: block;
+}
+
