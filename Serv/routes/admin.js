@@ -27,29 +27,29 @@ function authAdmin(req, res, next) {
   next();
 }
 
-// GET /api/admin/orders → lista todos os pedidos com cliente, telefone, histórico e referência
+// GET /api/admin/orders → lista todos os pedidos com cliente, telefone, serviços, histórico e referência
 router.get('/orders', authAdmin, async (req, res) => {
   try {
+    console.log('admin GET /orders by', req.user.id);
     const orders = await Order.find().sort({ createdAt: -1 }).lean();
-
     const data = await Promise.all(orders.map(async o => {
-      // busca cliente
+      // busca dados do cliente
       const user = await User.findById(o.client, 'name email').lean();
-      // histórico
+      // histórico de status
       const hist = await History.find({ order: o._id }).sort('changedAt').lean();
-      // fatura
+      // referência da fatura
       const inv  = await Invoice.findOne({ order: o._id }, 'reference').lean();
 
+      // monta lista de serviços (compatível com migração de campo único para array)
+      const services = Array.isArray(o.details.services) && o.details.services.length
+        ? o.details.services
+        : (o.details.service ? [o.details.service] : []);
+
       return {
-        id:         o._id,
+        _id:        o._id,
         client:     user || { name: '—', email: '—' },
-        phone:      o.details.phone || '—',            // ← telefone do pedido
-        services:   Array.isArray(o.details.services) 
-                     ? o.details.services 
-                     : (o.details.service ? [o.details.service] : []),
-        vessel:     o.details.vessel,
-        port:       o.details.port,
-        date:       o.details.estimatedDate,
+        phone:      o.details.phone || '—',
+        services,                                       // <-- aqui
         status:     o.status,
         history:    hist || [],
         reference:  inv?.reference || null,
@@ -71,6 +71,7 @@ router.put('/orders/:id', authAdmin, async (req, res) => {
     return res.status(400).json({ error: 'Campo status é obrigatório' });
   }
   try {
+    console.log(`admin PUT /orders/${req.params.id} status=${status} by ${req.user.id}`);
     const order = await Order.findByIdAndUpdate(
       req.params.id,
       { status },
@@ -117,6 +118,7 @@ router.post('/users', authAdmin, async (req, res) => {
   try {
     const hash = await bcrypt.hash(password, 10);
     const user = await User.create({ name, email, password: hash, role: 'admin' });
+    // registra auditoria
     await Audit.create({ admin: req.user.id, action: 'create-admin', target: user._id });
     res.json({ success: true, id: user._id, name: user.name, email: user.email });
   } catch (err) {
@@ -133,6 +135,7 @@ router.delete('/users/:id', authAdmin, async (req, res) => {
       return res.status(404).json({ error: 'Administrador não encontrado' });
     }
     await User.deleteOne({ _id: target._id });
+    // registra auditoria
     await Audit.create({ admin: req.user.id, action: 'delete-admin', target: target._id });
     res.json({ success: true });
   } catch (err) {
