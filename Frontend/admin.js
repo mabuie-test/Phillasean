@@ -5,9 +5,10 @@ console.log('⚙️ admin.js carregado');
 const API_BASE     = 'https://phillaseanbackend.onrender.com';
 const authTokenKey = 'phil_token';
 
-// Helper para chamadas à API com tratamento de 401
+// -----------------------
+// Helper para chamadas à API
+// -----------------------
 async function api(path, opts = {}) {
-  console.log(`→ API ${opts.method||'GET'} ${path}`, opts.body||'');
   const headers = opts.headers || {};
   const token = localStorage.getItem(authTokenKey);
   if (token) headers['Authorization'] = 'Bearer ' + token;
@@ -20,67 +21,63 @@ async function api(path, opts = {}) {
   });
 
   if (res.status === 401) {
-    console.warn('← API 401 Não autorizado');
+    // Se não autorizado, volta ao login
     window.location.href = 'login.html';
     return;
   }
-  const data = await res.json();
-  console.log('← API resposta:', data);
-  return data;
+  return await res.json();
 }
 
+// -----------------------
+// Elementos do DOM
+// -----------------------
+const tbody           = document.querySelector('#adminTable tbody');
+const searchInput     = document.getElementById('searchInput');
+const statusFilter    = document.getElementById('statusFilter');
+const refreshBtn      = document.getElementById('refreshBtn');
+const createAdminForm = document.getElementById('createAdminForm');
+const adminList       = document.getElementById('adminList');
+const auditList       = document.getElementById('auditList');
+
+// -----------------------
 // Logout
+// -----------------------
 document.getElementById('logoutBtn').addEventListener('click', () => {
-  console.log('Logout clicado');
   localStorage.removeItem(authTokenKey);
   window.location.href = 'login.html';
 });
 
-// Elementos
-const tbody         = document.querySelector('#adminTable tbody');
-const searchInput   = document.getElementById('searchInput');
-const statusFilter  = document.getElementById('statusFilter');
-const refreshBtn    = document.getElementById('refreshBtn');
-
-const createAdminForm = document.getElementById('createAdminForm');
-const adminList        = document.getElementById('adminList');
-const auditList        = document.getElementById('auditList');
-
-// Carrega pedidos do admin
+// -----------------------
+// Carregar Pedidos
+// -----------------------
 async function loadAdminOrders() {
-  console.log('Carregando pedidos de admin...');
   const orders = await api('/api/admin/orders', { method: 'GET' });
-  if (!Array.isArray(orders)) {
-    console.error('loadAdminOrders: orders não é array', orders);
-    return;
+  if (!Array.isArray(orders)) return console.error('Pedido inválido:', orders);
+
+  // Aplica filtros
+  let filtered = orders;
+  if (statusFilter.value) {
+    filtered = filtered.filter(o => o.status === statusFilter.value);
   }
-
-  // filtros
-  let filtered = statusFilter.value
-    ? orders.filter(o => o.status === statusFilter.value)
-    : orders.slice();
-
   const q = searchInput.value.trim().toLowerCase();
   if (q) {
     filtered = filtered.filter(o =>
       (o.client.name||'').toLowerCase().includes(q) ||
       (o.client.email||'').toLowerCase().includes(q) ||
-      (o.details.services || []).some(s => s.toLowerCase().includes(q)) ||
+      (o.details.services||[]).some(s => s.toLowerCase().includes(q)) ||
       (o.reference||'').toLowerCase().includes(q)
     );
   }
 
-  console.log('Pedidos após filtro:', filtered);
-
-  // montar tabela
+  // Limpa tabela
   tbody.innerHTML = '';
+
+  // Renderiza cada pedido
   filtered.forEach(o => {
-    // serviços como lista
     const servicesHtml = Array.isArray(o.details.services) && o.details.services.length
       ? `<ul>${o.details.services.map(s => `<li>${s}</li>`).join('')}</ul>`
       : '—';
 
-    // histórico
     const histHtml = (o.history||[]).map(h =>
       `<li>${new Date(h.changedAt).toLocaleDateString()} — ${h.status} (${h.by})</li>`
     ).join('');
@@ -107,63 +104,56 @@ async function loadAdminOrders() {
     tbody.appendChild(tr);
   });
 
-  attachActionListeners();
+  attachOrderListeners();
 }
 
-// Anexa listeners após renderizar
-function attachActionListeners() {
-  // atualizar status
+// -----------------------
+// Listeners de Ação nos Pedidos
+// -----------------------
+function attachOrderListeners() {
+  // Atualiza status
   tbody.querySelectorAll('.btn-update').forEach(btn => {
     btn.onclick = async () => {
       const id     = btn.dataset.orderId;
       const select = tbody.querySelector(`.status-select[data-order-id="${id}"]`);
       const status = select.value;
-      console.log(`Atualizando pedido ${id} → ${status}`);
-      const resp = await api(`/api/admin/orders/${id}`, {
+      const resp   = await api(`/api/admin/orders/${id}`, {
         method: 'PUT',
         body: { status }
       });
-      if (resp?.success) {
-        alert('Status atualizado');
-        loadAdminOrders();
-      } else {
-        alert(resp?.error || 'Erro ao atualizar status');
-      }
+      if (resp.success) loadAdminOrders();
+      else alert(resp.error || 'Erro ao atualizar status');
     };
   });
 
-  // download PDF
+  // Baixa PDF
   tbody.querySelectorAll('.btn-download').forEach(btn => {
     btn.onclick = async () => {
       const id  = btn.dataset.orderId;
       const ref = btn.dataset.ref;
-      console.log(`Baixando factura ${ref}`);
-      try {
-        const res = await fetch(`${API_BASE}/api/orders/${id}/invoice`, {
-          headers: { 'Authorization': 'Bearer ' + localStorage.getItem(authTokenKey) }
-        });
-        if (!res.ok) {
-          const err = await res.json();
-          return alert(err.error || 'Erro ao baixar factura');
-        }
-        const blob = await res.blob();
-        const url  = URL.createObjectURL(blob);
-        const a    = document.createElement('a');
-        a.href     = url;
-        a.download = `factura-${ref}.pdf`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
-      } catch (e) {
-        console.error('Erro no download da factura:', e);
-        alert('Falha ao baixar factura');
+      const res = await fetch(`${API_BASE}/api/orders/${id}/invoice`, {
+        headers: { 'Authorization': 'Bearer ' + localStorage.getItem(authTokenKey) }
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        return alert(err.error || 'Erro ao baixar factura');
       }
+      const blob = await res.blob();
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href     = url;
+      a.download = `factura-${ref}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
     };
   });
 }
 
-// gestão de admins
+// -----------------------
+// Gestão de Administradores
+// -----------------------
 async function loadAdminUsers() {
   const admins = await api('/api/admin/users', { method: 'GET' });
   if (!Array.isArray(admins)) return;
@@ -171,12 +161,12 @@ async function loadAdminUsers() {
   admins.forEach(u => {
     const li = document.createElement('li');
     li.innerHTML = `
-      <span>${u.name} &mdash; ${u.email}</span>
+      <span>${u.name} — ${u.email}</span>
       <button class="btn btn-update" data-user-id="${u._id}">❌</button>
     `;
     adminList.appendChild(li);
   });
-  // delete admin
+  // Deletar admin
   adminList.querySelectorAll('button').forEach(btn => {
     btn.onclick = async () => {
       const id = btn.dataset.userId;
@@ -188,7 +178,7 @@ async function loadAdminUsers() {
   });
 }
 
-// criar novo admin
+// Cria novo admin
 createAdminForm.addEventListener('submit', async e => {
   e.preventDefault();
   const f = new FormData(createAdminForm);
@@ -207,25 +197,28 @@ createAdminForm.addEventListener('submit', async e => {
   }
 });
 
-// carregar logs de auditoria
+// -----------------------
+// Auditoria
+// -----------------------
 async function loadAuditLog() {
   const logs = await api('/api/admin/audit', { method: 'GET' });
   if (!Array.isArray(logs)) return;
   auditList.innerHTML = '';
   logs.forEach(a => {
-    const li = document.createElement('li');
     const time = new Date(a.createdAt).toLocaleString();
-    li.textContent = `${time} — ${a.action} (por ${a.adminEmail || a.admin})`;
+    const li = document.createElement('li');
+    li.textContent = `${time} — ${a.action} (${a.target || ''}) por ${a.adminEmail||a.admin}`;
     auditList.appendChild(li);
   });
 }
 
-// filtros e busca
+// -----------------------
+// Filtros & Inicialização
+// -----------------------
 searchInput.addEventListener('input', loadAdminOrders);
 statusFilter.addEventListener('change', loadAdminOrders);
 refreshBtn.addEventListener('click', loadAdminOrders);
 
-// init
 (async () => {
   await loadAdminOrders();
   await loadAdminUsers();
