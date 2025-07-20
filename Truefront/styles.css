@@ -418,4 +418,36 @@ header {
 .auth-dropdown-content.show {
   display: block;
 }
+/* ===== Tablets (até 1024px) ===== */
+@media (max-width: 1024px) {
+  .header-container { padding: 0.5rem 1rem; }
+  .header-nav li { margin-left: 1rem; }
+}
+
+/* ===== Mobile (até 768px) ===== */
+@media (max-width: 768px) {
+  /* mostra o botão hambúrguer */
+  .mobile-menu-btn {
+    display: block;
+  }
+  /* esconde lista e posiciona off‑canvas */
+  .header-nav {
+    position: fixed;
+    top: 0;
+    right: -100%;
+    height: 100vh;
+    width: 200px;
+    flex-direction: column;
+    background: var(--primary);
+    padding-top: 4rem;
+    transition: right 0.3s ease;
+    z-index: 999;
+  }
+  .header-nav.show {
+    right: 0;
+  }
+  .header-nav li {
+    margin: 1rem 0;
+  }
+}
 
