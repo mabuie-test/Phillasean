@@ -1,4 +1,4 @@
-Atualize admin.js para renderizar o telefone:
+
 // admin.js
 
 console.log('⚙️ admin.js carregado');
