@@ -10,61 +10,27 @@
 </head>
 <body>
 <style>
-/* Overlay semi-transparente */
-#dialog-overlay {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-}
-#dialog-overlay.hidden {
-  display: none;
-}
-
-/* Caixa de diálogo */
-#dialog-box {
-  background: #fff;
-  border-radius: 8px;
-  max-width: 90%;
-  width: 400px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-  padding: 1rem;
-  text-align: center;
-  font-family: Arial, sans-serif;
-}
-
-/* Mensagem */
-#dialog-message {
-  margin-bottom: 1rem;
-  font-size: 1rem;
-  color: var(--dark);
-}
-
-/* Botões */
-#dialog-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 0.5rem;
-}
-#dialog-buttons button {
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 4px;
-  font-size: 0.9rem;
-  cursor: pointer;
-}
-#dialog-ok {
-  background: var(--primary);
-  color: #fff;
-}
-#dialog-cancel {
-  background: var(--error);
-  color: #fff;
-}
-</style>
+  <style>
+    /* Overlay genérico de diálogo (alert/confirm) */
+    #dialog-overlay {
+      position: fixed; top:0; left:0; right:0; bottom:0;
+      background: rgba(0,0,0,0.5);
+      display: flex; align-items:center; justify-content:center;
+      z-index:9999;
+    }
+    #dialog-overlay.hidden { display:none; }
+    #dialog-box {
+      background:#fff; border-radius:8px; width:90%; max-width:400px;
+      padding:1rem; text-align:center; box-shadow:0 2px 10px rgba(0,0,0,0.3);
+    }
+    #dialog-message { margin-bottom:1rem; }
+    #dialog-buttons { display:flex; justify-content:center; gap:0.5rem; }
+    #dialog-buttons button {
+      padding:0.5rem 1rem; border:none; border-radius:4px; cursor:pointer;
+    }
+    #dialog-ok { background:var(--primary); color:#fff; }
+    #dialog-cancel { background:var(--error); color:#fff; }
+  </style>
   <!-- Header -->
   <header>
     <div class="container header-container">
@@ -76,9 +42,7 @@
         </div>
       </div>
       <nav>
-        <button class="mobile-menu-btn" id="mobile-menu-btn">
-          <i class="fas fa-bars"></i>
-        </button>
+        <button class="mobile-menu-btn" id="mobile-menu-btn"><i class="fas fa-bars"></i></button>
         <ul id="main-menu">
           <li><a href="#home"><i class="fas fa-home"></i> Início</a></li>
           <li><a href="#services"><i class="fas fa-ship"></i> Serviços</a></li>
@@ -90,7 +54,7 @@
             <div class="auth-dropdown-content">
               <a href="login.html"><i class="fas fa-sign-in-alt"></i> Login</a>
               <a href="register.html"><i class="fas fa-user-plus"></i> Registro</a>
-              <a href="reserva.html"><i class="fas fa-tachometer-alt"></i> Área do Cliente</a>
+              <a href="reserva.html"><i class="fas fa-tachometer-alt"></i> Área Cliente</a>
             </div>
           </li>
         </ul>
@@ -98,11 +62,10 @@
     </div>
   </header>
 
-  <!-- Hero Section with Video Background -->
+  <!-- Hero Section -->
   <section class="hero" id="home">
     <video autoplay muted loop playsinline class="hero-video">
       <source src="assets/phi.mp4" type="video/mp4">
-      Seu navegador não suporta vídeos HTML5.
     </video>
     <div class="container">
       <h2>Serviços Premium de Abastecimento Naval em Moçambique</h2>
@@ -111,6 +74,7 @@
       <a href="#contact" class="btn btn-outline">Contate‑nos</a>
     </div>
   </section>
+
 
   <!-- Services Section -->
   <section class="section" id="services">
@@ -219,21 +183,64 @@
         <h2>Faça Seu Pedido</h2>
       </div>
       <form id="orderForm">
-        <div class="form-group"><label for="name">Nome Completo</label><input id="name" name="name" class="form-control" required></div>
-        <div class="form-group"><label for="company">Empresa</label><input id="company" name="company" class="form-control"></div>
-        <div class="form-group"><label for="email">Email</label><input id="email" name="email" type="email" class="form-control" required></div>
-        <div class="form-group"><label for="phone">Telefone</label><input id="phone" name="phone" type="tel" class="form-control"></div>
-        <div class="form-group"><label for="vessel">Nome do Navio</label><input id="vessel" name="vessel" class="form-control" required></div>
-        <div class="form-group"><label for="port">Porto</label><input id="port" name="port" class="form-control" required></div>
-        <div class="form-group"><label for="date">Data Estimada</label><input id="date" name="date" type="date" class="form-control" required></div>
-        <div class="form-group"><label for="service">Serviço Desejado</label><input id="service" name="service" class="form-control" required></div>
-        <div class="form-group"><label for="quantity">Quantidade</label><input id="quantity" name="quantity" type="number" class="form-control" required></div>
-        <div class="form-group"><label for="unitPrice">Preço Unitário (Opcional)</label><input id="unitPrice" name="unitPrice" type="number" step="0.01" class="form-control"></div>
-        <div class="form-group"><label for="notes">Observações</label><textarea id="notes" name="notes" class="form-control"></textarea></div>
-        <button type="submit" class="btn submit-btn">Enviar Solicitação</button>
+        <div class="form-group">
+          <label for="name">Nome Completo</label>
+          <input id="name" name="name" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label for="company">Empresa</label>
+          <input id="company" name="company" class="form-control">
+        </div>
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label for="phone">Telefone</label>
+          <input id="phone" name="phone" type="tel" class="form-control">
+        </div>
+        <div class="form-group">
+          <label for="vessel">Nome do Navio</label>
+          <input id="vessel" name="vessel" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label for="port">Porto</label>
+          <select id="port" name="port" class="form-control" required>
+            <option value="">Selecione um porto…</option>
+            <option value="Maputo">Maputo</option>
+            <option value="Beira">Beira</option>
+            <option value="Nacala">Nacala</option>
+            <option value="Pemba">Pemba</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="date">Data Estimada</label>
+          <input id="date" name="date" type="date" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label for="services">Serviços Desejados</label>
+          <select id="services" name="services" multiple class="form-control" required>
+            <option value="Tubos Hidráulicos">Tubos Hidráulicos</option>
+            <option value="Fornecimento de Água Potável">Fornecimento de Água Potável</option>
+            <option value="Garbage Collector">Garbage Collector</option>
+            <option value="Provisões e Mantimentos">Provisões e Mantimentos</option>
+            <option value="Frutas Frescas 1">Frutas Frescas 1</option>
+            <option value="Frutas Frescas 2">Frutas Frescas 2</option>
+            <option value="Frutas Frescas 3">Frutas Frescas 3</option>
+            <option value="Frutas Frescas 4">Frutas Frescas 4</option>
+            <option value="Lubrificantes Marítimos">Lubrificantes Marítimos</option>
+            <option value="Transporte Offshore">Transporte Offshore</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="notes">Observações</label>
+          <textarea id="notes" name="notes" class="form-control"></textarea>
+        </div>
+        <button type="submit" class="btn submit-btn">Enviar Pedido</button>
       </form>
     </div>
   </section>
+
 
   <!-- Contact Section -->
   <section class="section" id="contact">
@@ -283,19 +290,17 @@
       document.getElementById('main-menu').classList.toggle('show');
     });
   </script>
+  <!--logica do backend-->
   <script src="script.js" defer></script>
 
-<!-- Modal genérico para alert/confirm -->
-<div id="dialog-overlay" class="hidden">
-  <div id="dialog-box">
-    <div id="dialog-message"></div>
-    <div id="dialog-buttons">
-      <button id="dialog-ok">OK</button>
-      <button id="dialog-cancel" class="hidden">Cancelar</button>
-    </div>
-  </div>
-</div>
-
+  <!-- Modal genérico para alert/confirm -->
+  <div id="dialog-overlay" class="hidden">
+    <div id="dialog-box">
+      <div id="dialog-message"></div>
+      <div id="dialog-buttons">
+        <button id="dialog-ok">OK</button>
+        <button id="dialog-cancel" class="hidden">Cancelar</button>
+      </div>
 <!--Start of Tawk.to Script-->
   <!--Aqui a empresa vai criar uma conta Tawk para trocarmos-->
 <script type="text/javascript">
