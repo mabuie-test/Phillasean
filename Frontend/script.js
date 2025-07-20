@@ -93,7 +93,7 @@ if (orderForm) {
         vessel:   f.get('vessel'),
         port:     f.get('port'),
         date:     f.get('date'),
-        services: f.getAll('services'),  // array de strings
+        services: f.getAll('services'),
         notes:    f.get('notes')
       };
       const json = await api('/api/orders', { method: 'POST', body });
@@ -129,7 +129,7 @@ async function loadOrderHistory() {
 
     tbody.innerHTML = '';
     history.forEach(o => {
-      // monta lista de serviços ou exibe '—' se não houver
+      // monta lista de serviços ou exibe '—' se o array estiver vazio ou indefinido
       const servicesHtml = Array.isArray(o.services) && o.services.length
         ? `<ul>${o.services.map(s => `<li>${s}</li>`).join('')}</ul>`
         : '—';
