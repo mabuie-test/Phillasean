@@ -3,8 +3,7 @@ const { Schema, model, Types } = require('mongoose');
 const OrderSchema = new Schema({
   client:    { type: Types.ObjectId, ref: 'User', required: true },
   details: {
-    service:       String,
-    quantity:      Number,
+    services:      [{ type: String }],    // agora é array de strings
     notes:         String,
     vessel:        String,
     port:          String,
