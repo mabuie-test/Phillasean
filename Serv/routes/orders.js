@@ -17,14 +17,12 @@ const {
 // middleware para extrair e validar JWT
 function auth(req, res, next) {
   const token = req.headers.authorization?.split(' ')[1];
-  if (!token) {
-    return res.status(401).json({ error: 'Não autorizado' });
-  }
+  if (!token) return res.status(401).json({ error: 'Não autorizado' });
   try {
     req.user = jwt.verify(token, JWT_SECRET);
     next();
   } catch {
-    return res.status(401).json({ error: 'Token inválido' });
+    res.status(401).json({ error: 'Token inválido' });
   }
 }
 
@@ -35,13 +33,9 @@ const transporter = nodemailer.createTransport({
   auth: { user: EMAIL_USER, pass: EMAIL_PASS },
   tls: { rejectUnauthorized: false }
 });
-
 transporter.verify(err => {
-  if (err) {
-    console.error('SMTP inválido:', err.message);
-  } else {
-    console.log('SMTP pronto para enviar emails');
-  }
+  if (err) console.error('SMTP inválido:', err.message);
+  else     console.log('SMTP pronto para enviar emails');
 });
 
 // POST /api/orders → criar pedido
@@ -50,11 +44,19 @@ router.post('/', auth, async (req, res) => {
     return res.status(403).json({ error: 'Acesso negado' });
   }
 
-  // 1) Cria o pedido com array de services
+  // unifica service(s) antigo/novo num array
+  let services = [];
+  if (Array.isArray(req.body.services) && req.body.services.length) {
+    services = req.body.services;
+  } else if (req.body.service) {
+    services = [req.body.service];
+  }
+
+  // cria pedido
   const doc = await Order.create({
     client: req.user.id,
     details: {
-      services:      req.body.services || [],
+      services,
       notes:         req.body.notes,
       vessel:        req.body.vessel,
       port:          req.body.port,
@@ -62,34 +64,34 @@ router.post('/', auth, async (req, res) => {
     }
   });
 
-  // 2) Histórico inicial
+  // histórico inicial
   await History.create({ order: doc._id, status: 'pending', by: 'client' });
 
-  // 3) Gera fatura básica
+  // gera fatura
   const reference = `PHIL-${Date.now()}-${Math.floor(Math.random()*9000+1000)}`;
   const dueDate   = new Date(Date.now() + 14*24*3600*1000);
   await Invoice.create({
     order:     doc._id,
     reference,
     dueDate,
-    items: []  // itens não detalhados neste modelo
+    items:     []  // opcional: você pode depois detalhar preço por serviço
   });
 
-  // 4) Notificação por email (async, sem bloquear)
+  // notificação por email
   transporter.sendMail({
     from:    EMAIL_USER,
     to:      ADMIN_EMAIL,
     subject: `Novo pedido ${reference}`,
     html: `
       <p><strong>Cliente:</strong> ${req.body.name || '–'}</p>
-      <p><strong>Serviços:</strong><br>${(req.body.services||[]).map(s => `• ${s}`).join('<br>')}</p>
+      <p><strong>Serviços:</strong><br>${services.map(s => `• ${s}`).join('<br>')}</p>
       <p><strong>Porto:</strong> ${req.body.port}</p>
       <p><strong>Navio:</strong> ${req.body.vessel}</p>
       <p><strong>Referência:</strong> ${reference}</p>
     `
-  }).catch(err => console.error('Erro ao notificar por email:', err.message));
+  }).catch(err => console.error('Erro email:', err.message));
 
-  return res.json({ success: true, orderId: doc._id, reference });
+  res.json({ success: true, orderId: doc._id, reference });
 });
 
 // GET /api/orders → histórico do cliente
@@ -100,10 +102,15 @@ router.get('/', auth, async (req, res) => {
 
   const orders = await Order.find({ client: req.user.id }).sort({ createdAt: -1 });
   const data = await Promise.all(orders.map(async o => {
+    // fallback para históricos antigos
+    const services = Array.isArray(o.details.services) && o.details.services.length
+      ? o.details.services
+      : (o.details.service ? [o.details.service] : []);
+
     const inv = await Invoice.findOne({ order: o._id });
     return {
       id:        o._id,
-      services:  o.details.services,
+      services,
       port:      o.details.port,
       vessel:    o.details.vessel,
       date:      o.details.estimatedDate,
@@ -113,7 +120,7 @@ router.get('/', auth, async (req, res) => {
     };
   }));
 
-  return res.json(data);
+  res.json(data);
 });
 
 // GET /api/orders/:id/invoice → gera e envia PDF
@@ -127,6 +134,11 @@ router.get('/:id/invoice', auth, async (req, res) => {
   if (!order || !inv) {
     return res.status(404).json({ error: 'Factura não encontrada' });
   }
+
+  // garante array de serviços
+  const services = Array.isArray(order.details.services) && order.details.services.length
+    ? order.details.services
+    : (order.details.service ? [order.details.service] : []);
 
   res.setHeader('Content-Type', 'application/pdf');
   res.setHeader('Content-Disposition', `attachment; filename="factura-${inv.reference}.pdf"`);
@@ -147,9 +159,7 @@ router.get('/:id/invoice', auth, async (req, res) => {
 
   // Serviços
   doc.fontSize(14).text('Serviços Solicitados:', { underline: true }).moveDown(0.5);
-  order.details.services.forEach(s => {
-    doc.fontSize(12).text(`• ${s}`);
-  });
+  services.forEach(s => doc.fontSize(12).text(`• ${s}`));
   doc.moveDown();
 
   // Observações
@@ -160,7 +170,6 @@ router.get('/:id/invoice', auth, async (req, res) => {
 
   // Rodapé
   doc.fontSize(10).text('Obrigado pela preferência!', { align: 'center' });
-
   doc.end();
 });
 
