@@ -1,6 +1,3 @@
-//Mtech
-// routes/admin.js
-
 const router   = require('express').Router();
 const jwt      = require('jsonwebtoken');
 const bcrypt   = require('bcryptjs');
@@ -28,36 +25,22 @@ function authAdmin(req, res, next) {
   next();
 }
 
-// GET /api/admin/orders → lista todos os pedidos com cliente, telefone, serviços, histórico e referência
+// GET /api/admin/orders → lista todos os pedidos com cliente, histórico e referência
 router.get('/orders', authAdmin, async (req, res) => {
   try {
     console.log('admin GET /orders by', req.user.id);
     const orders = await Order.find().sort({ createdAt: -1 }).lean();
     const data = await Promise.all(orders.map(async o => {
-      // busca dados do cliente
       const user = await User.findById(o.client, 'name email').lean();
-      // histórico de status
       const hist = await History.find({ order: o._id }).sort('changedAt').lean();
-      // referência da fatura
       const inv  = await Invoice.findOne({ order: o._id }, 'reference').lean();
-
-      // monta lista de serviços (compatível com migração de campo único para array)
-      const services = Array.isArray(o.details.services) && o.details.services.length
-        ? o.details.services
-        : (o.details.service ? [o.details.service] : []);
-
       return {
-        _id:        o._id,
-        client:     user || { name: '—', email: '—' },
-        phone:      o.details.phone || '—',
-        services,                                       // <-- aqui
-        status:     o.status,
-        history:    hist || [],
-        reference:  inv?.reference || null,
-        createdAt:  o.createdAt
+        ...o,
+        client:    user || { name: '—', email: '—' },
+        history:   hist || [],
+        reference: inv?.reference || null
       };
     }));
-
     res.json(data);
   } catch (err) {
     console.error('admin GET /orders erro:', err);
@@ -146,7 +129,7 @@ router.delete('/users/:id', authAdmin, async (req, res) => {
 });
 
 // --------------------------------------------------
-// Logs de auditoria
+// Nova rota para listar logs de auditoria
 // --------------------------------------------------
 
 // GET /api/admin/audit → lista logs de auditoria
