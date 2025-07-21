@@ -1,41 +1,105 @@
 // src/controllers/orderController.js
+import path from 'path';
 import Order from '../models/Order.js';
 import Invoice from '../models/Invoice.js';
+import AuditLog from '../models/AuditLog.js';
 import { generateInvoicePDF } from '../services/invoiceService.js';
 import { sendOrderNotification } from '../services/emailService.js';
-import AuditLog from '../models/AuditLog.js';
-import path from 'path';
 
+// POST /api/orders
 export async function createOrder(req, res) {
-  const data = { ...req.body, client: req.user.id };
-  const order = await Order.create(data);
+  try {
+    const {
+      name, company, email, phone,
+      vessel, port, date, services, notes
+    } = req.body;
 
-  // Cria fatura
-  const invData = {
-    order: order._id,
-    number: `PHIL-${new Date().getFullYear()}-${Math.floor(1000+Math.random()*9000)}`,
-    date: new Date(),
-    dueDate: new Date(Date.now() + 14*24*60*60*1000)
-  };
-  const invoice = await Invoice.create(invData);
-  order.invoice = invoice._id;
-  await order.save();
+    // 1) Validações básicas
+    if (!name || !email || !vessel || !port || !date) {
+      return res.status(400).json({ message: 'Campos obrigatórios ausentes.' });
+    }
+    if (!Array.isArray(services) || services.length === 0) {
+      return res.status(400).json({ message: 'Selecione ao menos um serviço.' });
+    }
 
-  // Gera PDF e salva
-  const pdfPath = path.join('invoices', `${invoice.number}.pdf`);
-  generateInvoicePDF(invData, pdfPath);
-  invoice.filename = pdfPath;
-  await invoice.save();
+    // 2) Cria a ordem
+    const order = await Order.create({
+      client: req.user.id,
+      name,
+      company,
+      email,
+      phone,
+      vessel,
+      port,
+      date: new Date(date),
+      services,
+      notes
+    });
 
-  // Envia email
-  await sendOrderNotification(req.user.email, 'Sua solicitação foi recebida', `<p>Olá, sua fatura está em anexo.</p>`);
-  await sendOrderNotification('admin@philaseanprovider.co.mz', 'Nova solicitação recebida', `<p>Ordem #${order._id} criada.</p>`);
+    // 3) Cria a fatura associada
+    const invoiceNumber = `PHIL-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+    const invoice = await Invoice.create({
+      order:   order._id,
+      number:  invoiceNumber,
+      date:    new Date(),
+      dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
+    });
 
-  await AuditLog.create({ user: req.user.id, action: 'Created order', timestamp: new Date() });
-  res.status(201).json({ order, invoice });
+    // 4) Associa fatura à ordem
+    order.invoice = invoice._id;
+    await order.save();
+
+    // 5) Gera PDF da fatura
+    const pdfFilename = `${invoiceNumber}.pdf`;
+    const pdfPath     = path.join('invoices', pdfFilename);
+    await generateInvoicePDF(invoice.toObject(), pdfPath);
+
+    invoice.filename = pdfFilename;
+    await invoice.save();
+
+    // 6) Envia notificações por email
+    const userEmail = req.user.email; // authMiddleware deve popular req.user.email
+    await sendOrderNotification(
+      userEmail,
+      'Sua solicitação foi recebida',
+      `<p>Olá ${name},</p>
+       <p>Recebemos sua solicitação. Em anexo está sua fatura <strong>${invoiceNumber}</strong>.</p>`,
+      pdfPath
+    );
+    await sendOrderNotification(
+      'admin@philaseanprovider.co.mz',
+      'Nova solicitação recebida',
+      `<p>Ordem <strong>#${order._id}</strong> criada por ${email}.</p>`
+    );
+
+    // 7) Registra log de auditoria
+    await AuditLog.create({
+      user:      req.user.id,
+      action:    `Created order ${order._id}`,
+      timestamp: new Date()
+    });
+
+    // 8) Retorna ordem + fatura populada
+    const populatedOrder = await Order.findById(order._id).populate('invoice');
+    return res.status(201).json(populatedOrder);
+
+  } catch (err) {
+    console.error('Erro no createOrder:', err);
+    return res.status(500).json({ message: 'Erro interno ao criar ordem.' });
+  }
 }
 
+// GET /api/orders
 export async function getMyOrders(req, res) {
-  const orders = await Order.find({ client: req.user.id }).populate('invoice');
-  res.json(orders);
+  try {
+    const orders = await Order
+      .find({ client: req.user.id })
+      .sort({ createdAt: -1 })
+      .populate('invoice')
+      .lean();
+    return res.json(orders);
+  } catch (err) {
+    console.error('Erro no getMyOrders:', err);
+    return res.status(500).json({ message: 'Erro interno ao buscar ordens.' });
+  }
 }
