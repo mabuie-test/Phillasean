@@ -49,10 +49,15 @@ export async function createOrder(req, res) {
     order.invoice = invoice._id;
     await order.save();
 
-    // 5) Gera PDF da fatura
+    // 5) Gera PDF da fatura **com dados da ordem**
     const pdfFilename = `${invoiceNumber}.pdf`;
     const pdfPath     = path.join('invoices', pdfFilename);
-    await generateInvoicePDF(invoice.toObject(), pdfPath);
+
+    // Passa ambos os objetos para o gerador
+    await generateInvoicePDF(
+      { invoice: invoice.toObject(), order: order.toObject() },
+      pdfPath
+    );
 
     invoice.filename = pdfFilename;
     await invoice.save();
