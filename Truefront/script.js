@@ -7,14 +7,26 @@ const authTokenKey = 'phil_token';
 
 // ── Helpers de API ────────────────────────────────────────────────────────
 async function apiFetch(path, opts = {}) {
-  const token = localStorage.getItem(authTokenKey);
+  const token   = localStorage.getItem(authTokenKey);
   const headers = { 'Content-Type': 'application/json', ...opts.headers };
   if (token) headers.Authorization = 'Bearer ' + token;
-  const res = await fetch(API + path, { ...opts, headers });
-  const json = await res.json();
+
+  let res;
+  try {
+    res = await fetch(API + path, { mode: 'cors', ...opts, headers });
+  } catch (networkErr) {
+    throw new Error('Erro de rede: ' + networkErr.message);
+  }
+
+  let json;
+  try {
+    json = await res.json();
+  } catch {
+    throw new Error('Resposta inválida do servidor');
+  }
+
   if (!res.ok) {
-    // json.message vem do backend (controllers)
-    throw new Error(json.message || 'Erro na requisição');
+    throw new Error(json.message || `HTTP ${res.status}`);
   }
   return json;
 }
@@ -68,7 +80,7 @@ if (loginPageForm) {
     try {
       const { token } = await apiFetch('/auth/login', {
         method: 'POST',
-        body: JSON.stringify({ email, password: pass })
+        body:   JSON.stringify({ email, password: pass })
       });
       localStorage.setItem(authTokenKey, token);
       window.location.href = 'reserva.html';
@@ -89,7 +101,7 @@ if (registerPageForm) {
     try {
       await apiFetch('/auth/register', {
         method: 'POST',
-        body: JSON.stringify({ name, email, password: pass })
+        body:   JSON.stringify({ name, email, password: pass })
       });
       alert('Registo efetuado! Faça login.');
       window.location.href = 'login.html';
@@ -100,12 +112,12 @@ if (registerPageForm) {
 }
 
 // ── Modal de Autênticação (index.html) ───────────────────────────────────
-const authModal      = document.getElementById('authModal');
-const modalCloseBtn  = document.getElementById('authClose');
-const modalLoginBtn  = document.getElementById('loginBtn');
-const modalRegBtn    = document.getElementById('registerBtn');
-const modalLoginSub  = document.getElementById('loginSubmit');
-const modalRegSub    = document.getElementById('registerSubmit');
+const authModal     = document.getElementById('authModal');
+const modalCloseBtn = document.getElementById('authClose');
+const modalLoginBtn = document.getElementById('loginBtn');
+const modalRegBtn   = document.getElementById('registerBtn');
+const modalLoginSub = document.getElementById('loginSubmit');
+const modalRegSub   = document.getElementById('registerSubmit');
 
 if (authModal) {
   function toggleAuth(mode) {
@@ -113,16 +125,16 @@ if (authModal) {
     document.getElementById('loginForm').style.display    = mode === 'login'    ? 'block' : 'none';
     document.getElementById('registerForm').style.display = mode === 'register' ? 'block' : 'none';
   }
-  modalLoginBtn.onclick   = () => toggleAuth('login');
-  modalRegBtn.onclick     = () => toggleAuth('register');
-  modalCloseBtn.onclick   = () => toggleAuth();
-  modalLoginSub.onclick   = async () => {
+  modalLoginBtn.onclick  = () => toggleAuth('login');
+  modalRegBtn.onclick    = () => toggleAuth('register');
+  modalCloseBtn.onclick  = () => toggleAuth();
+  modalLoginSub.onclick  = async () => {
     const email    = document.getElementById('loginEmail').value;
     const password = document.getElementById('loginPassword').value;
     try {
       const { token } = await apiFetch('/auth/login', {
         method: 'POST',
-        body: JSON.stringify({ email, password })
+        body:   JSON.stringify({ email, password })
       });
       localStorage.setItem(authTokenKey, token);
       toggleAuth();
@@ -131,14 +143,14 @@ if (authModal) {
       alert('Falha no login: ' + err.message);
     }
   };
-  modalRegSub.onclick     = async () => {
+  modalRegSub.onclick    = async () => {
     const name     = document.getElementById('regName').value;
     const email    = document.getElementById('regEmail').value;
     const password = document.getElementById('regPassword').value;
     try {
       await apiFetch('/auth/register', {
         method: 'POST',
-        body: JSON.stringify({ name, email, password })
+        body:   JSON.stringify({ name, email, password })
       });
       alert('Registrado com sucesso! Faça login.');
       toggleAuth('login');
@@ -153,7 +165,6 @@ const orderForm = document.getElementById('orderForm');
 if (orderForm) {
   orderForm.addEventListener('submit', async e => {
     e.preventDefault();
-
     const data = {
       name:     orderForm.elements.name.value,
       company:  orderForm.elements.company.value,
@@ -165,11 +176,10 @@ if (orderForm) {
       services: Array.from(orderForm.elements.services.selectedOptions).map(o => o.value),
       notes:    orderForm.elements.notes.value
     };
-
     try {
       const created = await apiFetch('/orders', {
         method: 'POST',
-        body: JSON.stringify(data)
+        body:   JSON.stringify(data)
       });
       alert(`Reserva criada com sucesso! ID: ${created._id}`);
       orderForm.reset();
@@ -179,27 +189,25 @@ if (orderForm) {
       alert(`Não foi possível criar a reserva: ${err.message}`);
     }
   });
-
   listOrders();
 }
 
 async function listOrders() {
   try {
     const orders = await apiFetch('/orders', { method: 'GET' });
-    const tb = document.querySelector('#historyTable tbody');
-    if (tb) {
-      tb.innerHTML = orders.map(o =>
-        `<tr>
-           <td>${new Date(o.createdAt).toLocaleDateString()}</td>
-           <td>${o.services.join(', ')}</td>
-           <td>${o.status}</td>
-           <td><a href="${BACKEND}/invoices/${o.invoice.filename}" download>📄 Fatura</a></td>
-         </tr>`
-      ).join('');
-    }
+    const tb     = document.querySelector('#historyTable tbody');
+    if (!tb) return;
+    tb.innerHTML = orders.map(o=>`
+      <tr>
+        <td>${new Date(o.createdAt).toLocaleDateString()}</td>
+        <td>${o.services.join(', ')}</td>
+        <td>${o.status}</td>
+        <td><a href="${BACKEND}/invoices/${o.invoice.filename}" download>📄 Fatura</a></td>
+      </tr>
+    `).join('');
   } catch (err) {
     console.error('Erro ao listar reservas:', err);
   }
 }
 
-// ── Fim do script ────────────────────────────────────────────────────────//
+// ── Fim do script ────────────────────────────────────────────────────────
