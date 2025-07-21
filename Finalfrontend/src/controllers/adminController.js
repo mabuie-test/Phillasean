@@ -5,54 +5,9 @@ import AuditLog from '../models/AuditLog.js';
 import bcrypt  from 'bcryptjs';
 
 /**
- * GET /api/admin/invoices
- * Opções de filtro via query string:
- *  - status (string)
- *  - clientEmail (string)
- *  - dateFrom (YYYY-MM-DD)
- *  - dateTo   (YYYY-MM-DD)
- */
-export async function listInvoices(req, res) {
-  try {
-    const { status, clientEmail, dateFrom, dateTo } = req.query;
-    const filter = {};
-
-    // Filtra pelo status da ordem associada
-    if (status) {
-      filter['order.status'] = status;
-    }
-
-    // Filtra por email do cliente (populado)
-    if (clientEmail) {
-      filter['order.client.email'] = clientEmail;
-    }
-
-    // Filtra por intervalo de datas da fatura
-    if (dateFrom || dateTo) {
-      filter.date = {};
-      if (dateFrom) filter.date.$gte = new Date(dateFrom);
-      if (dateTo)   filter.date.$lte = new Date(dateTo);
-    }
-
-    const invoices = await Invoice
-      .find(filter)
-      .populate({
-        path: 'order',
-        populate: { path: 'client', select: 'name email' }
-      })
-      .sort({ date: -1 });
-
-    return res.json(invoices);
-  } catch (err) {
-    console.error('Erro em listInvoices:', err);
-    return res.status(500).json({ message: 'Erro interno ao listar faturas.' });
-  }
-}
-
-/**
  * POST /api/admin/admins
  * Cria um novo usuário com role 'admin'.
- * Espera no body: { name, email, password }
+ * Body: { name, email, password }
  */
 export async function createAdmin(req, res) {
   try {
@@ -72,48 +27,30 @@ export async function createAdmin(req, res) {
     const hash = await bcrypt.hash(password, salt);
 
     // Cria usuário com role 'admin'
-    const user = await User.create({
+    const newAdmin = await User.create({
       name,
       email,
       password: hash,
       role: 'admin'
     });
 
-    // Log de auditoria
+    // Log de auditoria — usa req.user.id se existir, senão atribui newAdmin._id
     await AuditLog.create({
-      user: req.user.id,
-      action: `Created admin ${user._id}`,
+      user:      req.user?.id || newAdmin._id,
+      action:    `Created admin ${newAdmin._id}`,
       timestamp: new Date()
     });
 
     // Retorna dados sem a senha
     return res.status(201).json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role
+      _id:  newAdmin._id,
+      name: newAdmin.name,
+      email: newAdmin.email,
+      role: newAdmin.role
     });
 
   } catch (err) {
     console.error('Erro em createAdmin:', err);
     return res.status(500).json({ message: 'Erro interno ao criar administrador.' });
-  }
-}
-
-/**
- * GET /api/admin/audit
- * Retorna todos os logs de auditoria em ordem decrescente de timestamp
- */
-export async function getAuditLogs(req, res) {
-  try {
-    const logs = await AuditLog
-      .find()
-      .sort({ timestamp: -1 })
-      .populate({ path: 'user', select: 'name email' })
-      .lean();
-    return res.json(logs);
-  } catch (err) {
-    console.error('Erro em getAuditLogs:', err);
-    return res.status(500).json({ message: 'Erro interno ao buscar logs.' });
   }
 }
