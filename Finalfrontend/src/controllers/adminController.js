@@ -1,29 +1,20 @@
 // src/controllers/adminController.js
-import path from 'path';
-import Invoice from '../models/Invoice.js';
-import User    from '../models/User.js';
+import Invoice  from '../models/Invoice.js';
+import Order    from '../models/Order.js';
+import User     from '../models/User.js';
 import AuditLog from '../models/AuditLog.js';
-import bcrypt  from 'bcryptjs';
+import bcrypt   from 'bcryptjs';
 
 /**
  * GET /api/admin/invoices
- * Opções de filtro via query string:
- *  - status (string)
- *  - clientEmail (string)
- *  - dateFrom (YYYY-MM-DD)
- *  - dateTo   (YYYY-MM-DD)
  */
 export async function listInvoices(req, res) {
   try {
     const { status, clientEmail, dateFrom, dateTo } = req.query;
     const filter = {};
 
-    if (status) {
-      filter['order.status'] = status;
-    }
-    if (clientEmail) {
-      filter['order.client.email'] = clientEmail;
-    }
+    if (status)      filter['order.status'] = status;
+    if (clientEmail) filter['order.client.email'] = clientEmail;
     if (dateFrom || dateTo) {
       filter.date = {};
       if (dateFrom) filter.date.$gte = new Date(dateFrom);
@@ -46,9 +37,62 @@ export async function listInvoices(req, res) {
 }
 
 /**
+ * PUT /api/admin/invoices/:orderId
+ * Atualiza o status de uma Order (associada à Invoice)
+ */
+export async function updateOrderStatus(req, res) {
+  try {
+    const { orderId } = req.params;
+    const { status }  = req.body;
+    if (!['pending','in_progress','completed'].includes(status)) {
+      return res.status(400).json({ message: 'Status inválido.' });
+    }
+
+    // Atualiza a ordem
+    const order = await Order.findByIdAndUpdate(
+      orderId,
+      { status },
+      { new: true }
+    ).populate('invoice');
+
+    if (!order) {
+      return res.status(404).json({ message: 'Ordem não encontrada.' });
+    }
+
+    // Log de auditoria
+    await AuditLog.create({
+      user:      req.user?.id || order.client,
+      action:    `Updated order ${orderId} to ${status}`,
+      timestamp: new Date()
+    });
+
+    return res.json(order);
+  } catch (err) {
+    console.error('Erro em updateOrderStatus:', err);
+    return res.status(500).json({ message: 'Erro interno ao atualizar status.' });
+  }
+}
+
+/**
+ * GET /api/admin/admins
+ * Lista todos os usuários com role='admin'
+ */
+export async function listAdmins(req, res) {
+  try {
+    const admins = await User
+      .find({ role: 'admin' })
+      .select('name email')
+      .lean();
+    return res.json(admins);
+  } catch (err) {
+    console.error('Erro em listAdmins:', err);
+    return res.status(500).json({ message: 'Erro interno ao listar administradores.' });
+  }
+}
+
+/**
  * POST /api/admin/admins
  * Cria um novo usuário com role 'admin'.
- * Body: { name, email, password }
  */
 export async function createAdmin(req, res) {
   try {
@@ -64,12 +108,8 @@ export async function createAdmin(req, res) {
 
     const salt = await bcrypt.genSalt(10);
     const hash = await bcrypt.hash(password, salt);
-
     const newAdmin = await User.create({
-      name,
-      email,
-      password: hash,
-      role: 'admin'
+      name, email, password: hash, role: 'admin'
     });
 
     await AuditLog.create({
@@ -84,7 +124,6 @@ export async function createAdmin(req, res) {
       email: newAdmin.email,
       role: newAdmin.role
     });
-
   } catch (err) {
     console.error('Erro em createAdmin:', err);
     return res.status(500).json({ message: 'Erro interno ao criar administrador.' });
@@ -93,7 +132,7 @@ export async function createAdmin(req, res) {
 
 /**
  * GET /api/admin/audit
- * Retorna todos os logs de auditoria em ordem decrescente de timestamp
+ * Retorna todos os logs de auditoria
  */
 export async function getAuditLogs(req, res) {
   try {
