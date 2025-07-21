@@ -14,7 +14,7 @@ export async function createOrder(req, res) {
       vessel, port, date, services, notes
     } = req.body;
 
-    // 1) Validações básicas
+    // validações…
     if (!name || !email || !vessel || !port || !date) {
       return res.status(400).json({ message: 'Campos obrigatórios ausentes.' });
     }
@@ -22,89 +22,68 @@ export async function createOrder(req, res) {
       return res.status(400).json({ message: 'Selecione ao menos um serviço.' });
     }
 
-    // 2) Cria a ordem
+    // cria a ordem
     const order = await Order.create({
       client: req.user.id,
-      name,
-      company,
-      email,
-      phone,
-      vessel,
-      port,
+      name, company, email, phone,
+      vessel, port,
       date: new Date(date),
       services,
       notes
     });
 
-    // 3) Cria a fatura associada
+    // cria a fatura
     const invoiceNumber = `PHIL-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
     const invoice = await Invoice.create({
-      order:   order._id,
-      number:  invoiceNumber,
-      date:    new Date(),
-      dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
+      order: order._id,
+      number: invoiceNumber,
+      date: new Date(),
+      dueDate: new Date(Date.now() + 14*24*60*60*1000)
     });
 
-    // 4) Associa fatura à ordem
     order.invoice = invoice._id;
     await order.save();
 
-    // 5) Gera PDF da fatura **com dados da ordem**
+    // **AQUI**: apenas o nome do arquivo
     const pdfFilename = `${invoiceNumber}.pdf`;
-    const pdfPath     = path.join('invoices', pdfFilename);
-
-    // Passa ambos os objetos para o gerador
+    // injeta dados de ordem + fatura no PDF
     await generateInvoicePDF(
       { invoice: invoice.toObject(), order: order.toObject() },
-      pdfPath
+      pdfFilename
     );
 
     invoice.filename = pdfFilename;
     await invoice.save();
 
-    // 6) Envia notificações por email
-    const userEmail = req.user.email; // authMiddleware deve popular req.user.email
+    // envia email ao cliente com nota de progresso
     await sendOrderNotification(
-      userEmail,
+      email,
       'Sua solicitação foi recebida',
       `<p>Olá ${name},</p>
-       <p>Recebemos sua solicitação. Em anexo está sua fatura <strong>${invoiceNumber}</strong>.</p>`,
-      pdfPath
+       <p>Sua solicitação foi recebida e a fatura <strong>${invoiceNumber}</strong> foi gerada.</p>
+       <p>Verifique o progresso do status da fatura; em breve será processada e entraremos em contato.</p>`,
+      // anexa o PDF gerado lá em src/services/invoices
+      path.join('invoices', pdfFilename)
     );
+
+    // email para admin
     await sendOrderNotification(
-      'admin@philaseanprovider.co.mz',
+      'Jorgemaabuie@gmail.com,
       'Nova solicitação recebida',
       `<p>Ordem <strong>#${order._id}</strong> criada por ${email}.</p>`
     );
 
-    // 7) Registra log de auditoria
     await AuditLog.create({
-      user:      req.user.id,
-      action:    `Created order ${order._id}`,
+      user: req.user.id,
+      action: `Created order ${order._id}`,
       timestamp: new Date()
     });
 
-    // 8) Retorna ordem + fatura populada
     const populatedOrder = await Order.findById(order._id).populate('invoice');
     return res.status(201).json(populatedOrder);
 
   } catch (err) {
     console.error('Erro no createOrder:', err);
     return res.status(500).json({ message: 'Erro interno ao criar ordem.' });
-  }
-}
-
-// GET /api/orders
-export async function getMyOrders(req, res) {
-  try {
-    const orders = await Order
-      .find({ client: req.user.id })
-      .sort({ createdAt: -1 })
-      .populate('invoice')
-      .lean();
-    return res.json(orders);
-  } catch (err) {
-    console.error('Erro no getMyOrders:', err);
-    return res.status(500).json({ message: 'Erro interno ao buscar ordens.' });
   }
 }
