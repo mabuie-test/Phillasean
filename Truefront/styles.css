@@ -1,301 +1,162 @@
 :root {
-  --primary: #0056b3;
+  --primary:   #0056b3;
   --secondary: #003366;
-  --accent: #ff8c00;
-  --light: #f8f9fa;
-  --dark: #212529;
-  --header-height: 60px;
+  --light:     #f8f9fa;
+  --dark:      #212529;
+  --header-h:  60px;
 }
 
+/* Reset global */
 * {
-  margin: 0;
-  padding: 0;
+  margin: 0; padding: 0;
   box-sizing: border-box;
-  font-family: 'Arial', sans-serif;
+  font-family: Arial, sans-serif;
 }
-
 body {
+  padding-top: var(--header-h);
   background: var(--light);
   color: var(--dark);
-  line-height: 1.6;
-  padding-top: var(--header-height); /* espaço para o header fixo */
 }
 
-/* ===== Header & Nav ===== */
+/* ===== Header ===== */
 header {
+  position: fixed; top: 0; left: 0;
+  width: 100%; height: var(--header-h);
   background: var(--primary);
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%;
-  height: var(--header-height);
   z-index: 1000;
 }
 .header-container {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 100%;
-  width: 90%;
-  max-width: 1200px;
-  margin: 0 auto;
+  max-width: 1200px; margin: 0 auto;
+  height: 100%; display: flex;
+  align-items: center; justify-content: space-between;
+  padding: 0 1rem; position: relative;
 }
-.logo a {
-  display: flex;
-  align-items: center;
-  color: #fff;
-  text-decoration: none;
-  font-size: 1.5rem;
+.logo {
+  display: flex; align-items: center;
+  color: #fff; text-decoration: none;
+  font-size: 1.25rem;
 }
-#logo-img {
-  height: 40px;
-  margin-right: 0.5rem;
+.logo img {
+  height: 40px; margin-right: 0.5rem;
 }
 
-/* ===== Navigation Links ===== */
-.header-nav {
+/* ===== Nav ===== */
+.nav ul {
   list-style: none;
-  display: flex;
-  align-items: center;
+  display: flex; align-items: center;
 }
-.header-nav li {
-  margin-left: 1.5rem;
-  position: relative;
+.nav li {
+  position: relative; margin-left: 1.5rem;
 }
-.header-nav a {
-  color: #fff;
-  text-decoration: none;
-  font-weight: 500;
-  padding: 0.5rem;
+.nav a {
+  color: #fff; text-decoration: none;
+  font-weight: 500; padding: 0.5rem;
 }
 
-/* ===== Hamburger Button ===== */
+/* ===== Dropdown Conta ===== */
+.dropdown-menu {
+  position: absolute; top: var(--header-h);
+  right: 0; background: #fff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  display: none; list-style: none;
+  min-width: 160px;
+}
+.dropdown-menu li a {
+  display: block; padding: 0.5rem 1rem;
+  color: var(--dark); text-decoration: none;
+}
+.dropdown-menu.show {
+  display: block;
+}
+
+/* ===== Hamburger ===== */
 .mobile-menu-btn {
   display: none;
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  color: #fff;
+  background: none; border: none;
+  color: #fff; font-size: 1.5rem;
+  cursor: pointer;
 }
 
-/* ===== Dropdown “Conta” ===== */
-.auth-dropdown-content {
-  display: none;
-  position: absolute;
-  top: var(--header-height);
-  right: 0;
-  background: #fff;
-  list-style: none;
-  padding: 0.5rem 0;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-  z-index: 1000;
+/* ===== Modal ===== */
+.modal {
+  position: fixed; top:0; left:0;
+  width:100%; height:100%;
+  background: rgba(0,0,0,0.5);
+  display: none; align-items:center;
+  justify-content:center; z-index:2000;
 }
-.auth-dropdown-content li {
-  margin: 0;
+.modal.show {
+  display: flex;
 }
-.auth-dropdown-content a {
-  display: block;
-  padding: 0.5rem 1rem;
-  color: var(--dark);
-  text-decoration: none;
+.modal-box {
+  background:#fff; padding:1.5rem;
+  border-radius:8px; position:relative;
+  width:90%; max-width:400px;
 }
-.auth-dropdown-content.show {
-  display: block;
+.modal-close {
+  position:absolute; top:0.5rem; right:0.5rem;
+  background:none; border:none; font-size:1.5rem;
+  cursor:pointer;
+}
+.modal-box input {
+  width:100%; padding:0.5rem;
+  margin:0.5rem 0; border:1px solid #ccc;
+}
+.modal-box button {
+  width:100%; padding:0.5rem;
+  background: var(--primary); color:#fff;
+  border:none; cursor:pointer;
+  margin-top:0.5rem;
 }
 
-/* ===== Hero ===== */
+/* ===== Hero Exemplo ===== */
 .hero {
-  position: relative;
-  height: calc(100vh - var(--header-height));
-  overflow: hidden;
-  text-align: center;
-  color: #fff;
-}
-.hero-video {
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  object-fit: cover;
-  z-index: -1;
-}
-.hero .container {
-  position: relative;
-  top: 50%;
-  transform: translateY(-50%);
-}
-.hero h2 {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-}
-.hero p {
-  font-size: 1.25rem;
-  margin-bottom: 1.5rem;
-}
-
-/* ===== Buttons ===== */
-.btn {
-  display: inline-block;
-  padding: 0.75rem 1.5rem;
-  background: var(--primary);
-  color: #fff;
-  border-radius: 4px;
-  text-decoration: none;
-  transition: background 0.3s;
-}
-.btn:hover {
+  height: calc(100vh - var(--header-h));
   background: var(--secondary);
+  display:flex; align-items:center;
+  justify-content:center; text-align:center;
 }
-.btn-outline {
-  background: transparent;
-  border: 2px solid #fff;
-  color: #fff;
+.hero-content h1 {
+  font-size:2.5rem; color:#fff;
 }
-
-/* ===== Sections ===== */
-.section {
-  padding: 80px 0;
-}
-.section-title {
-  text-align: center;
-  margin-bottom: 40px;
-}
-.section-title h2 {
-  font-size: 2.5rem;
-  display: inline-block;
-  position: relative;
-}
-.section-title h2::after {
-  content: '';
-  position: absolute;
-  width: 50%;
-  height: 4px;
-  background: var(--accent);
-  bottom: -10px;
-  left: 25%;
+.hero-content p {
+  margin-top:1rem; color:#fff;
 }
 
-/* ===== Services Grid ===== */
-.services-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 2rem;
-}
-
-/* ===== Footer ===== */
-footer {
-  background: #f5f5f5;
-  padding: 2rem 0;
-  text-align: center;
-}
-
-/* ===== Media Queries ===== */
-
-/* Tablet (<=1024px) */
+/* ===== Responsivo ===== */
+/* Tablet */
 @media (max-width: 1024px) {
-  .services-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .hero h2 { font-size: 2.5rem; }
-  .hero p  { font-size: 1.1rem; }
+  .nav ul { margin-right: 1rem; }
 }
 
-/* Mobile (<=768px) */
+/* Mobile */
 @media (max-width: 768px) {
-  /* mostra o hambúrguer */
-  .mobile-menu-btn {
-    display: block;
-  }
-  /* esconde lista de nav e posiciona abaixo do header */
-  .header-nav {
-    display: none;
-    flex-direction: column;
-    position: absolute;
-    top: var(--header-height);
-    left: 0;
-    width: 100%;
+  .mobile-menu-btn { display: block; }
+
+  /* menu “cai” sob o header */
+  .nav {
+    position: absolute; top: var(--header-h);
+    left: 0; width: 100%;
     background: var(--primary);
-    z-index: 999;
+    display: none; flex-direction: column;
   }
-  .header-nav.show {
+  .nav.show {
     display: flex;
   }
-  .header-nav li {
-    margin: 0;
-    border-top: 1px solid rgba(255,255,255,0.2);
+  .nav li {
+    margin: 0; border-top:1px solid rgba(255,255,255,0.2);
   }
-  .header-nav a {
-    display: block;
-    padding: 1rem;
-    text-align: center;
-  }
-  /* ajusta hero para caber */
-  .hero {
-    height: calc(100vh - var(--header-height));
-  }
-  .hero h2 { font-size: 2rem; }
-  .hero p  { font-size: 0.9rem; }
-}
-/* 1) Garanta que o container do header sirva de referência */
-.header-container {
-  position: relative;
-}
-
-/* 2) Variável com a altura do header */
-:root {
-  --header-height: 60px; /* ajuste se o seu header for maior/menor */
-}
-
-/* 3) Espaço para o body não ficar sob o header */
-body {
-  padding-top: var(--header-height);
-}
-
-/* 4) Mobile (até 768px) */
-@media (max-width: 768px) {
-  /* a) mostra o botão hamburguer */
-  .mobile-menu-btn {
-    display: block;
-  }
-
-  /* b) esconde o nav por padrão */
-  .header-nav {
-    display: none;
-    position: absolute;      /* absoluto dentro do container */
-    top: var(--header-height);/* logo abaixo do header */
-    left: 0;                  /* alinhado à borda do container */
-    width: 100%;              /* ocupa 100% do container, não da viewport */
-    background: var(--primary);
-    flex-direction: column;
-    z-index: 999;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-  }
-  /* c) mostra quando tiver .show */
-  .header-nav.show {
-    display: flex;
-  }
-
-  /* d) itens do menu ocupam largura completa do nav */
-  .header-nav li {
-    margin: 0;
-    border-top: 1px solid rgba(255,255,255,0.2);
-  }
-  .header-nav li:first-child {
+  .nav li:first-child {
     border-top: none;
   }
-  .header-nav a {
-    display: block;
+  .nav a {
+    display: block; text-align: center;
     padding: 1rem;
-    text-align: center;
   }
 
-  /* e) dropdown Conta dentro do nav */
-  .auth-dropdown-content {
-    position: static;  /* remove absolute e leva como item do fluxo */
-    display: none;
-    box-shadow: none;
+  /* dropdown faz parte do fluxo */
+  .dropdown-menu {
+    position: static; box-shadow: none;
     background: var(--light);
-    margin: 0;
-  }
-  .auth-dropdown-content.show {
-    display: block;
   }
 }
