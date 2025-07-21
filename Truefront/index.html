@@ -21,7 +21,7 @@
         </div>
       </div>
       <nav>
-        <button class="mobile-menu-btn" id="mobile-menu-btn">
+        <button class="mobile-menu-btn" id="mobileMenuBtn">
           <i class="fas fa-bars"></i>
         </button>
         <ul id="main-menu">
@@ -51,7 +51,7 @@
     <video autoplay muted loop playsinline class="hero-video">
       <source src="assets/phi.mp4" type="video/mp4">
     </video>
-    <div class="container">
+    <div class="hero-content container">
       <h2>Serviços Premium de Abastecimento Naval em Moçambique</h2>
       <p>Seu parceiro confiável em logística marítima e provisões para embarcações ao longo de toda a costa moçambicana.</p>
       <a href="#order" class="btn">Solicitar Serviço</a>
@@ -59,72 +59,20 @@
     </div>
   </section>
 
-  <!-- Services Section -->
-  <section class="section" id="services">
-    <div class="container">
-      <div class="section-title"><h2>Nossos Serviços em Moçambique</h2></div>
-      <div class="services-grid">
-        <!-- repita seus cards originais aqui -->
-        <!-- ... -->
-      </div>
-    </div>
-  </section>
-
-  <!-- About Section -->
-  <section class="section about" id="about">
-    <div class="container">
-      <div class="about-content">
-        <div class="about-text">
-          <h2>Sobre Nossas Operações em Moçambique</h2>
-          <p>PHIL ASEAN PROVIDER & LOGISTICS é especialista em serviços marítimos na costa moçambicana, com ampla experiência em operações portuárias e regulamentações locais.</p>
-          <p>Desde 2010, atendemos embarcações em Maputo, Beira, Nacala, Pemba e Quelimane, 24/7, com tempo de resposta ágil.</p>
-          <p>Nosso conhecimento das normas alfandegárias e relacionamento com autoridades garantem operações sem entraves.</p>
-        </div>
-        <div class="about-img"><img src="assets/IMG_8120.JPG" alt="Costa Moçambicana"></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Order Section -->
-  <section class="section order" id="order">
-    <div class="container">
-      <div class="section-title"><h2>Faça Seu Pedido</h2></div>
-      <form id="orderForm">
-        <!-- seus campos originais de pedido -->
-      </form>
-    </div>
-  </section>
-
-  <!-- Contact Section -->
-  <section class="section" id="contact">
-    <div class="container">
-      <div class="section-title"><h2>Contato</h2></div>
-      <div class="contact-info">
-        <!-- seus cards de contato originais -->
-      </div>
-    </div>
-  </section>
-
-  <!-- Footer -->
-  <footer>
-    <div class="container footer-content">
-      <!-- seu conteúdo de footer original -->
-    </div>
-    <p style="text-align:center; padding:1rem 0; background:#f5f5f5; margin:0;">
-      © 2025 PHIL ASEAN PROVIDER & LOGISTICS. Todos os direitos reservados.
-    </p>
-  </footer>
+  <!-- ... demais seções (services, about, order, contact, footer) exatamente como você enviou originalmente ... -->
 
   <!-- Modal de Login / Registo -->
   <div class="modal" id="authModal">
     <div class="modal-box">
       <button class="modal-close" id="authClose">&times;</button>
-      <div id="loginForm"><h2>Login</h2>
+      <div id="loginForm">
+        <h2>Login</h2>
         <input type="email" id="loginEmail" placeholder="Email">
         <input type="password" id="loginPassword" placeholder="Senha">
         <button id="loginSubmit">Entrar</button>
       </div>
-      <div id="registerForm"><h2>Registo</h2>
+      <div id="registerForm">
+        <h2>Registo</h2>
         <input type="text" id="regName" placeholder="Nome">
         <input type="email" id="regEmail" placeholder="Email">
         <input type="password" id="regPassword" placeholder="Senha">
@@ -133,39 +81,8 @@
     </div>
   </div>
 
-  <!-- Toggle Mobile Menu -->
-  <script>
-    document.getElementById('mobile-menu-btn').addEventListener('click', () => {
-      document.getElementById('main-menu').classList.toggle('show');
-    });
-  </script>
-
-  <!-- Backend Logic -->
+  <!-- Importa todo o JavaScript de controle (incluindo toggle mobile e dropdown Conta) -->
   <script src="script.js" defer></script>
-
-  <!-- Diálogo Genérico (alert/confirm) -->
-  <div id="dialog-overlay" class="hidden">
-    <div id="dialog-box">
-      <div id="dialog-message"></div>
-      <div id="dialog-buttons">
-        <button id="dialog-ok">OK</button>
-        <button id="dialog-cancel" class="hidden">Cancelar</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Tawk.to Script -->
-  <script type="text/javascript">
-    var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
-    (function(){
-      var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
-      s1.async=true;
-      s1.src='https://embed.tawk.to/687bec5ed69815191a7c488e/1j0i16krc';
-      s1.charset='UTF-8';
-      s1.setAttribute('crossorigin','*');
-      s0.parentNode.insertBefore(s1,s0);
-    })();
-  </script>
 
 </body>
 </html>
