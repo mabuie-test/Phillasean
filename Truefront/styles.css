@@ -427,4 +427,14 @@ header h1 {
   #controls button {
     width: 100%;
   }
+    /* Reserva.html — nota informativa */
+.info-note {
+  background: #e7f3fe;
+  border-left: 4px solid #2196F3;
+  padding: 0.75rem 1rem;
+  margin: 1rem 0 2rem;
+  font-size: 0.95rem;
+  color: #0b4f8a;
+}
+
 }
