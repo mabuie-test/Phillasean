@@ -9,27 +9,36 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <!-- Header / Navegação -->
+
+  <!-- Header -->
   <header>
-    <div class="header-container">
-      <a href="index.html" class="logo">
-        <img src="assets/phil.jpeg" alt="PHIL ASEAN" id="logo-img">
-        <span>PHIL ASEAN</span>
-      </a>
-      <button class="mobile-menu-btn" id="mobileMenuBtn">
-        <i class="fas fa-bars"></i>
-      </button>
-      <nav class="nav" id="navLinks">
-        <ul>
-          <li><a href="index.html">Home</a></li>
-          <li><a href="reserva.html">Reservas</a></li>
-          <li class="dropdown">
-            <a href="#" id="accountBtn">Conta <i class="fas fa-caret-down"></i></a>
-            <ul class="dropdown-menu" id="accountMenu">
-              <li class="guest"><a href="#" id="loginBtn">Login</a></li>
-              <li class="guest"><a href="#" id="registerBtn">Registar</a></li>
-              <li class="user"><a href="reserva.html" id="clientAreaBtn">Área do Cliente</a></li>
-              <li class="user"><a href="#" id="logoutBtn">Logout</a></li>
+    <div class="container header-container">
+      <div class="logo">
+        <img src="assets/phil.jpeg" alt="PHIL ASEAN Logo" id="logo-img">
+        <div class="logo-text">
+          <h1>PHIL ASEAN PROVIDER & LOGISTICS</h1>
+          <p>Serviços Marítimos ao Longo da Costa Moçambicana</p>
+        </div>
+      </div>
+      <nav>
+        <button class="mobile-menu-btn" id="mobile-menu-btn">
+          <i class="fas fa-bars"></i>
+        </button>
+        <ul id="main-menu">
+          <li><a href="#home"><i class="fas fa-home"></i> Início</a></li>
+          <li><a href="#services"><i class="fas fa-ship"></i> Serviços</a></li>
+          <li><a href="#about"><i class="fas fa-info-circle"></i> Sobre</a></li>
+          <li><a href="#order"><i class="fas fa-clipboard-list"></i> Pedido</a></li>
+          <li><a href="#contact"><i class="fas fa-envelope"></i> Contato</a></li>
+          <li class="auth-dropdown">
+            <a href="#" id="accountBtn">
+              <i class="fas fa-user"></i> Conta <i class="fas fa-chevron-down"></i>
+            </a>
+            <ul class="auth-dropdown-content" id="accountMenu">
+              <li class="guest"><a href="#" id="loginBtn"><i class="fas fa-sign-in-alt"></i> Login</a></li>
+              <li class="guest"><a href="#" id="registerBtn"><i class="fas fa-user-plus"></i> Registo</a></li>
+              <li class="user"><a href="reserva.html" id="clientAreaBtn"><i class="fas fa-tachometer-alt"></i> Área Cliente</a></li>
+              <li class="user"><a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
             </ul>
           </li>
         </ul>
@@ -42,8 +51,8 @@
     <video autoplay muted loop playsinline class="hero-video">
       <source src="assets/phi.mp4" type="video/mp4">
     </video>
-    <div class="hero-content container">
-      <h1>Serviços Premium de Abastecimento Naval em Moçambique</h1>
+    <div class="container">
+      <h2>Serviços Premium de Abastecimento Naval em Moçambique</h2>
       <p>Seu parceiro confiável em logística marítima e provisões para embarcações ao longo de toda a costa moçambicana.</p>
       <a href="#order" class="btn">Solicitar Serviço</a>
       <a href="#contact" class="btn btn-outline">Contate‑nos</a>
@@ -53,90 +62,25 @@
   <!-- Services Section -->
   <section class="section" id="services">
     <div class="container">
-      <div class="section-title">
-        <h2>Nossos Serviços em Moçambique</h2>
-      </div>
+      <div class="section-title"><h2>Nossos Serviços em Moçambique</h2></div>
       <div class="services-grid">
-        <!-- Tubos Hidráulicos -->
-        <div class="service-card">
-          <div class="service-img">
-            <img src="assets/tubo.jpeg" alt="Tubos Hidráulicos">
-          </div>
-          <div class="service-content">
-            <h3>Tubos Hidráulicos</h3>
-            <p>Fornecemos tubos hidráulicos de alta resistência, ideais para aplicações marítimas e industriais.</p>
-            <a href="#order" class="btn">Solicitar</a>
-          </div>
-        </div>
-        <!-- Água Potável -->
-        <div class="service-card">
-          <div class="service-img">
-            <img src="assets/agua.jpeg" alt="Água Potável">
-          </div>
-          <div class="service-content">
-            <h3>Água Potável</h3>
-            <p>Entrega de água limpa em sua embarcação, conforme padrões internacionais.</p>
-            <a href="#order" class="btn">Solicitar</a>
-          </div>
-        </div>
-        <!-- Coleta de Resíduos -->
-        <div class="service-card">
-          <div class="service-img">
-            <img src="assets/llixo.jpeg" alt="Garbage Collector">
-          </div>
-          <div class="service-content">
-            <h3>Coleta de Resíduos</h3>
-            <p>Gerenciamento adequado de resíduos sólidos e líquidos gerados a bordo.</p>
-            <a href="#order" class="btn">Solicitar</a>
-          </div>
-        </div>
-        <!-- Provisões e Mantimentos -->
-        <div class="service-card">
-          <div class="service-img">
-            <img src="assets/alimento.jpeg" alt="Provisões e Mantimentos">
-          </div>
-          <div class="service-content">
-            <h3>Provisões e Mantimentos</h3>
-            <p>Provisões frescas e dry goods entregues diretamente em sua embarcação.</p>
-            <a href="#order" class="btn">Solicitar</a>
-          </div>
-        </div>
-        <!-- Lubrificantes Marítimos -->
-        <div class="service-card">
-          <div class="service-img">
-            <img src="assets/ole.jpeg" alt="Lubrificantes Marítimos">
-          </div>
-          <div class="service-content">
-            <h3>Lubrificantes Marítimos</h3>
-            <p>Lubrificantes de alta performance para motores e equipamentos náuticos.</p>
-            <a href="#order" class="btn">Solicitar</a>
-          </div>
-        </div>
-        <!-- Transporte Offshore -->
-        <div class="service-card">
-          <div class="service-img">
-            <img src="assets/PH1.jpg" alt="Transporte Offshore">
-          </div>
-          <div class="service-content">
-            <h3>Transporte Offshore</h3>
-            <p>Logística completa para operações offshore com segurança e eficiência.</p>
-            <a href="#order" class="btn">Solicitar</a>
-          </div>
-        </div>
+        <!-- repita seus cards originais aqui -->
+        <!-- ... -->
       </div>
     </div>
   </section>
 
   <!-- About Section -->
   <section class="section about" id="about">
-    <div class="container about-content">
-      <div class="about-text">
-        <h2>Sobre Nossas Operações</h2>
-        <p>Desde 2010, atendemos embarcações em Maputo, Beira, Nacala, Pemba e Quelimane 24/7, com agilidade e conformidade regulatória.</p>
-        <p>Expertise em normas alfandegárias e relacionamento com autoridades para operações sem entraves.</p>
-      </div>
-      <div class="about-img">
-        <img src="assets/IMG_8120.JPG" alt="Costa Moçambicana">
+    <div class="container">
+      <div class="about-content">
+        <div class="about-text">
+          <h2>Sobre Nossas Operações em Moçambique</h2>
+          <p>PHIL ASEAN PROVIDER & LOGISTICS é especialista em serviços marítimos na costa moçambicana, com ampla experiência em operações portuárias e regulamentações locais.</p>
+          <p>Desde 2010, atendemos embarcações em Maputo, Beira, Nacala, Pemba e Quelimane, 24/7, com tempo de resposta ágil.</p>
+          <p>Nosso conhecimento das normas alfandegárias e relacionamento com autoridades garantem operações sem entraves.</p>
+        </div>
+        <div class="about-img"><img src="assets/IMG_8120.JPG" alt="Costa Moçambicana"></div>
       </div>
     </div>
   </section>
@@ -144,53 +88,9 @@
   <!-- Order Section -->
   <section class="section order" id="order">
     <div class="container">
-      <div class="section-title">
-        <h2>Faça Seu Pedido</h2>
-      </div>
+      <div class="section-title"><h2>Faça Seu Pedido</h2></div>
       <form id="orderForm">
-        <div class="form-group">
-          <label for="name">Nome Completo</label>
-          <input id="name" name="name" class="form-control" required>
-        </div>
-        <div class="form-group">
-          <label for="company">Empresa</label>
-          <input id="company" name="company" class="form-control">
-        </div>
-        <div class="form-group">
-          <label for="email">Email</label>
-          <input id="email" name="email" type="email" class="form-control" required>
-        </div>
-        <div class="form-group">
-          <label for="phone">Telefone</label>
-          <input id="phone" name="phone" type="tel" class="form-control">
-        </div>
-        <div class="form-group">
-          <label for="vessel">Navio</label>
-          <input id="vessel" name="vessel" class="form-control" required>
-        </div>
-        <div class="form-group">
-          <label for="port">Porto</label>
-          <select id="port" name="port" class="form-control" required>
-            <option value="">Selecione…</option>
-            <option>Maputo</option>
-            <option>Beira</option>
-            <option>Nacala</option>
-            <option>Pemba</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="date">Data Estimada</label>
-          <input id="date" name="date" type="date" class="form-control" required>
-        </div>
-        <div class="form-group">
-          <label for="services">Serviços</label>
-          <textarea id="services" name="services" class="form-control" placeholder="Separe por vírgula"></textarea>
-        </div>
-        <div class="form-group">
-          <label for="notes">Observações</label>
-          <textarea id="notes" name="notes" class="form-control"></textarea>
-        </div>
-        <button type="submit" class="btn submit-btn">Enviar Pedido</button>
+        <!-- seus campos originais de pedido -->
       </form>
     </div>
   </section>
@@ -198,25 +98,9 @@
   <!-- Contact Section -->
   <section class="section" id="contact">
     <div class="container">
-      <div class="section-title">
-        <h2>Contate‑nos</h2>
-      </div>
+      <div class="section-title"><h2>Contato</h2></div>
       <div class="contact-info">
-        <div class="contact-card">
-          <i class="fas fa-map-marker-alt"></i>
-          <h3>Localização</h3>
-          <p>Porto de Maputo, Moçambique</p>
-        </div>
-        <div class="contact-card">
-          <i class="fas fa-phone-alt"></i>
-          <h3>Telefone</h3>
-          <p>+258 878979532</p>
-        </div>
-        <div class="contact-card">
-          <i class="fas fa-envelope"></i>
-          <h3>Email</h3>
-          <p>philasean@philaseanprovider.co.mz</p>
-        </div>
+        <!-- seus cards de contato originais -->
       </div>
     </div>
   </section>
@@ -224,37 +108,23 @@
   <!-- Footer -->
   <footer>
     <div class="container footer-content">
-      <div class="footer-col">
-        <h3>PHIL ASEAN MOÇAMBIQUE</h3>
-        <p>Parceria confiável em serviços marítimos desde 2010.</p>
-      </div>
-      <div class="footer-col">
-        <h3>Links Rápidos</h3>
-        <ul class="footer-links">
-          <li><a href="#services">Serviços</a></li>
-          <li><a href="#about">Sobre</a></li>
-          <li><a href="#order">Pedido</a></li>
-          <li><a href="#contact">Contato</a></li>
-        </ul>
-      </div>
+      <!-- seu conteúdo de footer original -->
     </div>
-    <p style="text-align:center; padding:1rem 0; background:#eaeaea; margin:0;">
-      © 2025 PHIL ASEAN PROVIDER & LOGISTICS. Todos os direitos reservados.
+    <p style="text-align:center; padding:1rem 0; background:#f5f5f5; margin:0;">
+      © 2025 PHIL ASEAN PROVIDER & LOGISTICS. Todos os direitos reservados.
     </p>
   </footer>
 
-  <!-- Modal de Autenticação -->
+  <!-- Modal de Login / Registo -->
   <div class="modal" id="authModal">
     <div class="modal-box">
       <button class="modal-close" id="authClose">&times;</button>
-      <div id="loginForm">
-        <h2>Login</h2>
+      <div id="loginForm"><h2>Login</h2>
         <input type="email" id="loginEmail" placeholder="Email">
         <input type="password" id="loginPassword" placeholder="Senha">
         <button id="loginSubmit">Entrar</button>
       </div>
-      <div id="registerForm">
-        <h2>Registar</h2>
+      <div id="registerForm"><h2>Registo</h2>
         <input type="text" id="regName" placeholder="Nome">
         <input type="email" id="regEmail" placeholder="Email">
         <input type="password" id="regPassword" placeholder="Senha">
@@ -263,6 +133,39 @@
     </div>
   </div>
 
+  <!-- Toggle Mobile Menu -->
+  <script>
+    document.getElementById('mobile-menu-btn').addEventListener('click', () => {
+      document.getElementById('main-menu').classList.toggle('show');
+    });
+  </script>
+
+  <!-- Backend Logic -->
   <script src="script.js" defer></script>
+
+  <!-- Diálogo Genérico (alert/confirm) -->
+  <div id="dialog-overlay" class="hidden">
+    <div id="dialog-box">
+      <div id="dialog-message"></div>
+      <div id="dialog-buttons">
+        <button id="dialog-ok">OK</button>
+        <button id="dialog-cancel" class="hidden">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tawk.to Script -->
+  <script type="text/javascript">
+    var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+    (function(){
+      var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+      s1.async=true;
+      s1.src='https://embed.tawk.to/687bec5ed69815191a7c488e/1j0i16krc';
+      s1.charset='UTF-8';
+      s1.setAttribute('crossorigin','*');
+      s0.parentNode.insertBefore(s1,s0);
+    })();
+  </script>
+
 </body>
 </html>
