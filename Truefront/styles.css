@@ -345,4 +345,109 @@ footer {
     box-shadow: none;
     background: var(--light);
   }
+  /* ===== Responsividade: Tablet (≤1024px) ===== */
+@media (max-width: 1024px) {
+  /* Serviços: 2 colunas em grid */
+  .services-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  /* Sobre: empilha verticalmente */
+  .about-content {
+    flex-direction: column;
+    align-items: center;
+  }
+  /* Hero: fontes menores */
+  .hero h2 {
+    font-size: 2.5rem;
+  }
+  .hero p {
+    font-size: 1.1rem;
+  }
+  /* Seções: títulos um pouco menores */
+  .section-title h2 {
+    font-size: 2rem;
+  }
+}
+
+/* ===== Responsividade: Mobile (≤768px) ===== */
+@media (max-width: 768px) {
+  /* 1) Botão hambúrguer aparece */
+  .mobile-menu-btn {
+    display: block;
+  }
+
+  /* 2) Menu principal “cai” dentro do header */
+  #main-menu {
+    display: none;
+    position: absolute;
+    top: var(--header-h);
+    left: 0;
+    width: 100%;
+    background: var(--primary);
+    flex-direction: column;
+    z-index: 1000;
+  }
+  #main-menu.show {
+    display: flex;
+  }
+  #main-menu li {
+    margin: 0;
+    border-top: 1px solid rgba(255,255,255,0.2);
+  }
+  #main-menu li:first-child {
+    border-top: none;
+  }
+  #main-menu a {
+    display: block;
+    padding: 1rem;
+    text-align: center;
+  }
+
+  /* 3) Dropdown “Conta” vira parte do fluxo */
+  .auth-dropdown .dropdown-menu {
+    position: static;
+    box-shadow: none;
+    background: var(--light);
+  }
+
+  /* 4) Hero: fontes e padding reduzidos */
+  .hero h2 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+  }
+  .hero p {
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+  }
+  .btn,
+  .btn-outline {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  /* 5) Forms e tabelas: ajustes de fonte e espaçamento */
+  #orderForm {
+    padding: 1rem;
+  }
+  .form-control {
+    font-size: 0.9rem;
+  }
+
+  .history-table th,
+  .history-table td {
+    font-size: 0.85rem;
+    padding: 0.5rem;
+  }
+
+  /* 6) Footer: colunas empilhadas */
+  .footer-content {
+    flex-direction: column;
+    align-items: center;
+  }
+  .footer-links {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
+
 }
