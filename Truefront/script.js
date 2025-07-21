@@ -11,11 +11,12 @@ async function apiFetch(path, opts = {}) {
   const headers = { 'Content-Type': 'application/json', ...opts.headers };
   if (token) headers.Authorization = 'Bearer ' + token;
   const res = await fetch(API + path, { ...opts, headers });
-  if (res.status === 401) {
-    logout();
-    throw new Error('Não autenticado');
+  const json = await res.json();
+  if (!res.ok) {
+    // json.message vem do backend (controllers)
+    throw new Error(json.message || 'Erro na requisição');
   }
-  return res.json();
+  return json;
 }
 
 // ── Mobile Menu Toggle ────────────────────────────────────────────────────
@@ -112,15 +113,16 @@ if (authModal) {
     document.getElementById('loginForm').style.display    = mode === 'login'    ? 'block' : 'none';
     document.getElementById('registerForm').style.display = mode === 'register' ? 'block' : 'none';
   }
-  modalLoginBtn.onclick    = () => toggleAuth('login');
-  modalRegBtn.onclick      = () => toggleAuth('register');
-  modalCloseBtn.onclick    = () => toggleAuth();
-  modalLoginSub.onclick    = async () => {
+  modalLoginBtn.onclick   = () => toggleAuth('login');
+  modalRegBtn.onclick     = () => toggleAuth('register');
+  modalCloseBtn.onclick   = () => toggleAuth();
+  modalLoginSub.onclick   = async () => {
     const email    = document.getElementById('loginEmail').value;
     const password = document.getElementById('loginPassword').value;
     try {
       const { token } = await apiFetch('/auth/login', {
-        method: 'POST', body: JSON.stringify({ email, password })
+        method: 'POST',
+        body: JSON.stringify({ email, password })
       });
       localStorage.setItem(authTokenKey, token);
       toggleAuth();
@@ -129,13 +131,14 @@ if (authModal) {
       alert('Falha no login: ' + err.message);
     }
   };
-  modalRegSub.onclick      = async () => {
+  modalRegSub.onclick     = async () => {
     const name     = document.getElementById('regName').value;
     const email    = document.getElementById('regEmail').value;
     const password = document.getElementById('regPassword').value;
     try {
       await apiFetch('/auth/register', {
-        method: 'POST', body: JSON.stringify({ name, email, password })
+        method: 'POST',
+        body: JSON.stringify({ name, email, password })
       });
       alert('Registrado com sucesso! Faça login.');
       toggleAuth('login');
@@ -163,29 +166,17 @@ if (orderForm) {
       notes:    orderForm.elements.notes.value
     };
 
-    console.log('Enviando pedido:', data);
-
     try {
-      const res = await fetch(API + '/orders', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify(data)
+      const created = await apiFetch('/orders', {
+        method: 'POST',
+        body: JSON.stringify(data)
       });
-
-      console.log('Status HTTP:', res.status, res.statusText);
-      const json = await res.json();
-      console.log('Resposta JSON:', json);
-
-      if (!res.ok) {
-        throw new Error(json.message || 'Erro ao criar reserva');
-      }
-
-      alert('Reserva criada com sucesso! ID: ' + json._id);
+      alert(`Reserva criada com sucesso! ID: ${created._id}`);
       orderForm.reset();
       listOrders();
     } catch (err) {
       console.error('Erro ao criar reserva:', err);
-      alert('Não foi possível criar a reserva: ' + err.message);
+      alert(`Não foi possível criar a reserva: ${err.message}`);
     }
   });
 
@@ -211,4 +202,4 @@ async function listOrders() {
   }
 }
 
-// ── Fim do script ────────────────────────────────────────────────────────
+// ── Fim do script ────────────────────────────────────────────────────────//
