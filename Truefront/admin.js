@@ -1,99 +1,138 @@
 // admin.js
-const API = 'https://phillasean-1.onrender.com/api';
-const token = localStorage.getItem('phil_token');
 
-// cabeçalho comum
+// ── Guardião de acesso: apenas admins continuam ────────────────────────────
+;(function guardAdmin() {
+  const token = localStorage.getItem('phil_token');
+  if (!token) {
+    // não autenticado
+    return window.location.replace('login.html');
+  }
+  // helper para decodificar payload JWT
+  function parseJwt(t) {
+    try {
+      const payload = t.split('.')[1];
+      const decoded = atob(payload.replace(/-/g,'+').replace(/_/g,'/'));
+      return JSON.parse(decodeURIComponent(
+        decoded.split('')
+               .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+               .join('')
+      ));
+    } catch {
+      return {};
+    }
+  }
+  const { role } = parseJwt(token);
+  if (role !== 'admin') {
+    // usuário não‑admin não pode ficar no painel
+    return window.location.replace('reserva.html');
+  }
+})();
+
+// ── Configurações comuns ─────────────────────────────────────────────────
+const API   = 'https://phillasean-1.onrender.com/api/admin';
+const token = localStorage.getItem('phil_token');
 const headers = {
   'Content-Type': 'application/json',
   'Authorization': 'Bearer ' + token
 };
 
-// Logout
+// ── Logout ────────────────────────────────────────────────────────────────
 document.getElementById('logoutBtn').onclick = () => {
   localStorage.removeItem('phil_token');
   window.location.href = 'login.html';
 };
 
-// Carrega pedidos e logs ao entrar
+// ── Carrega dados ao iniciar ─────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
-  loadOrders();
+  loadInvoices();
   loadAuditLogs();
 });
 
-// Filtrar pedidos
-document.getElementById('btnFilter').onclick = () => loadOrders({
-  status: document.getElementById('filterStatus').value,
-  from: document.getElementById('filterDateFrom').value,
-  to: document.getElementById('filterDateTo').value
-});
+// ── Filtrar faturas ──────────────────────────────────────────────────────
+document.getElementById('btnFilter').onclick = () => {
+  loadInvoices({
+    status:   document.getElementById('filterStatus').value,
+    dateFrom: document.getElementById('filterDateFrom').value,
+    dateTo:   document.getElementById('filterDateTo').value
+  });
+};
 
-// Função para obter e renderizar pedidos
-async function loadOrders(filters = {}) {
-  const qs = new URLSearchParams(filters).toString();
-  const res = await fetch(`${API}/admin/orders?${qs}`, { headers });
-  const orders = await res.json();
+// ── Listar e renderizar faturas ──────────────────────────────────────────
+async function loadInvoices(filters = {}) {
+  const qs  = new URLSearchParams(filters).toString();
+  const res = await fetch(`${API}/invoices?${qs}`, { headers });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const invoices = await res.json();
+
   const tbody = document.querySelector('#ordersTable tbody');
-  tbody.innerHTML = orders.map(o => `
-    <tr>
-      <td>${o._id}</td>
-      <td>${o.name} (${o.email})</td>
-      <td>${o.services.join(', ')}</td>
-      <td>${new Date(o.createdAt).toLocaleDateString()}</td>
-      <td>
-        <select data-id="${o._id}" class="statusSelect">
-          <option ${o.status==='pending'? 'selected':''} value="pending">Pendente</option>
-          <option ${o.status==='in_progress'? 'selected':''} value="in_progress">Em Progresso</option>
-          <option ${o.status==='completed'? 'selected':''} value="completed">Concluído</option>
-        </select>
-      </td>
-      <td><a href="https://phillasean-1.onrender.com/invoices/${o.invoice.filename}" download>📄</a></td>
-      <td><button class="btn-download" data-id="${o._id}">Atualizar</button></td>
-    </tr>
-  `).join('');
+  tbody.innerHTML = invoices.map(inv => {
+    const o = inv.order;
+    return `
+      <tr>
+        <td>${inv._id}</td>
+        <td>${o.client.name} (${o.client.email})</td>
+        <td>${o.services.join(', ')}</td>
+        <td>${new Date(inv.date).toLocaleDateString()}</td>
+        <td>
+          <select data-id="${o._id}" class="statusSelect">
+            <option value="pending"    ${o.status==='pending'   ? 'selected':''}>Pendente</option>
+            <option value="in_progress"${o.status==='in_progress'? 'selected':''}>Em Progresso</option>
+            <option value="completed"  ${o.status==='completed'  ? 'selected':''}>Concluído</option>
+          </select>
+        </td>
+        <td><a href="https://phillasean-1.onrender.com/invoices/${inv.filename}" download>📄</a></td>
+        <td><button class="btn-update" data-id="${o._id}">Atualizar</button></td>
+      </tr>`;
+  }).join('');
 
-  // Ações de atualização de status
+  // Atualiza status da ordem via PUT /api/admin/invoices/:orderId
   document.querySelectorAll('.statusSelect').forEach(sel => {
     sel.onchange = async () => {
-      const id = sel.dataset.id;
-      const status = sel.value;
-      await fetch(`${API}/admin/orders/${id}`, {
+      const orderId = sel.dataset.id;
+      const status  = sel.value;
+      await fetch(`${API}/invoices/${orderId}`, {
         method: 'PUT',
         headers,
         body: JSON.stringify({ status })
       });
-      loadAuditLogs(); // atualiza logs
+      loadAuditLogs();
     };
   });
 }
 
-// Criar novo admin
+// ── Criar novo admin ─────────────────────────────────────────────────────
 document.getElementById('createAdminForm').onsubmit = async e => {
   e.preventDefault();
-  const name = document.getElementById('newAdminName').value;
-  const email= document.getElementById('newAdminEmail').value;
-  const pass = document.getElementById('newAdminPass').value;
-  const res  = await fetch(`${API}/admin/users`, {
+  const name  = document.getElementById('newAdminName').value;
+  const email = document.getElementById('newAdminEmail').value;
+  const pass  = document.getElementById('newAdminPass').value;
+
+  const res  = await fetch(`${API}/admins`, {
     method: 'POST',
     headers,
-    body: JSON.stringify({ name, email, password: pass, role: 'admin' })
+    body: JSON.stringify({ name, email, password: pass })
   });
+  const json = await res.json();
+
   if (res.ok) {
-    alert('Admin criado com sucesso!');
+    alert('Admin criado com sucesso: ' + json.email);
     e.target.reset();
     loadAuditLogs();
   } else {
-    alert('Falha ao criar admin');
+    alert('Falha ao criar admin: ' + (json.message || res.status));
   }
 };
 
-// Carrega logs de auditoria
+// ── Carregar logs de auditoria ───────────────────────────────────────────
 async function loadAuditLogs() {
-  const res = await fetch(`${API}/admin/audit`, { headers });
+  const res  = await fetch(`${API}/audit`, { headers });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const logs = await res.json();
+
   const tbody = document.querySelector('#auditTable tbody');
   tbody.innerHTML = logs.map(l => `
     <tr>
-      <td>${l.user}</td>
+      <td>${l.user.name || l.user}</td>
       <td>${l.action}</td>
       <td>${new Date(l.timestamp).toLocaleString()}</td>
     </tr>
