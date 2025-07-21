@@ -1,9 +1,11 @@
+// src/server.js
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { connectDB } from './config/db.js';
-import authRoutes from './routes/auth.js';
+import authRoutes  from './routes/auth.js';
 import orderRoutes from './routes/orders.js';
 import adminRoutes from './routes/admin.js';
 
@@ -18,17 +20,15 @@ app.use('/api/auth',   authRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/admin',  adminRoutes);
 
-// 1) Determine o caminho absoluto da pasta de faturas
-const __dirname = path.resolve();  
-const invoicesPath = path.join(
-  __dirname,
-  'src',
-  'services',
-  'invoices'
-);
+// resolve __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname  = path.dirname(__filename);
 
-// 2) Sirva os PDFs a partir desse diretório
-app.use('/invoices', express.static(invoicesPath));
+// serve a mesma pasta src/services/invoices
+app.use(
+  '/invoices',
+  express.static(path.join(__dirname, 'services', 'invoices'))
+);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Servidor rodando na porta ${PORT}`));
