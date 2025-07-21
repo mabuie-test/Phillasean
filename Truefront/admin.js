@@ -3,29 +3,18 @@
 // ── Guardião de acesso: apenas admins continuam ────────────────────────────
 ;(function guardAdmin() {
   const token = localStorage.getItem('phil_token');
-  if (!token) {
-    // não autenticado
-    return window.location.replace('login.html');
-  }
-  // helper para decodificar payload JWT
+  if (!token) return window.location.replace('login.html');
   function parseJwt(t) {
     try {
-      const payload = t.split('.')[1];
-      const decoded = atob(payload.replace(/-/g,'+').replace(/_/g,'/'));
+      const p = t.split('.')[1];
+      const d = atob(p.replace(/-/g,'+').replace(/_/g,'/'));
       return JSON.parse(decodeURIComponent(
-        decoded.split('')
-               .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-               .join('')
+        d.split('').map(c=> '%' + ('00'+c.charCodeAt(0).toString(16)).slice(-2)).join('')
       ));
-    } catch {
-      return {};
-    }
+    } catch { return {}; }
   }
   const { role } = parseJwt(token);
-  if (role !== 'admin') {
-    // usuário não‑admin não pode ficar no painel
-    return window.location.replace('reserva.html');
-  }
+  if (role !== 'admin') return window.location.replace('reserva.html');
 })();
 
 // ── Configurações comuns ─────────────────────────────────────────────────
@@ -42,10 +31,11 @@ document.getElementById('logoutBtn').onclick = () => {
   window.location.href = 'login.html';
 };
 
-// ── Carrega dados ao iniciar ─────────────────────────────────────────────
+// ── Carrega tudo ao iniciar ──────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
   loadInvoices();
   loadAuditLogs();
+  loadAdmins();
 });
 
 // ── Filtrar faturas ──────────────────────────────────────────────────────
@@ -71,7 +61,7 @@ async function loadInvoices(filters = {}) {
       <tr>
         <td>${inv._id}</td>
         <td>${o.client.name} (${o.client.email})</td>
-        <td>${o.services.join(', ')}</td>
+        <td style="word-break:break-word; min-width:120px;">${o.services.join(', ')}</td>
         <td>${new Date(inv.date).toLocaleDateString()}</td>
         <td>
           <select data-id="${o._id}" class="statusSelect">
@@ -80,12 +70,20 @@ async function loadInvoices(filters = {}) {
             <option value="completed"  ${o.status==='completed'  ? 'selected':''}>Concluído</option>
           </select>
         </td>
-        <td><a href="https://phillasean-1.onrender.com/invoices/${inv.filename}" download>📄</a></td>
-        <td><button class="btn-update" data-id="${o._id}">Atualizar</button></td>
+        <td>
+          <a 
+            href="https://phillasean-1.onrender.com/invoices/${inv.filename}" 
+            download 
+            style="font-size:1.2rem;"
+          >📄</a>
+        </td>
+        <td>
+          <button class="btn-update" data-id="${o._id}">Atualizar</button>
+        </td>
       </tr>`;
   }).join('');
 
-  // Atualiza status da ordem via PUT /api/admin/invoices/:orderId
+  // Hook de mudança de status
   document.querySelectorAll('.statusSelect').forEach(sel => {
     sel.onchange = async () => {
       const orderId = sel.dataset.id;
@@ -98,6 +96,18 @@ async function loadInvoices(filters = {}) {
       loadAuditLogs();
     };
   });
+}
+
+// ── Listar administradores atuais ────────────────────────────────────────
+async function loadAdmins() {
+  const res = await fetch(`${API}/admins`, { headers });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const admins = await res.json();
+
+  const ul = document.getElementById('adminsList');
+  ul.innerHTML = admins.map(a =>
+    `<li>${a.name} — ${a.email}</li>`
+  ).join('');
 }
 
 // ── Criar novo admin ─────────────────────────────────────────────────────
@@ -117,7 +127,7 @@ document.getElementById('createAdminForm').onsubmit = async e => {
   if (res.ok) {
     alert('Admin criado com sucesso: ' + json.email);
     e.target.reset();
-    loadAuditLogs();
+    loadAdmins();
   } else {
     alert('Falha ao criar admin: ' + (json.message || res.status));
   }
@@ -125,7 +135,7 @@ document.getElementById('createAdminForm').onsubmit = async e => {
 
 // ── Carregar logs de auditoria ───────────────────────────────────────────
 async function loadAuditLogs() {
-  const res  = await fetch(`${API}/audit`, { headers });
+  const res = await fetch(`${API}/audit`, { headers });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const logs = await res.json();
 
