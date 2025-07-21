@@ -20,15 +20,14 @@ app.use('/api/auth',   authRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/admin',  adminRoutes);
 
-// resolve __dirname
+// Resolve __dirname correto
 const __filename = fileURLToPath(import.meta.url);
 const __dirname  = path.dirname(__filename);
 
-// serve a mesma pasta src/services/invoices
-app.use(
-  '/invoices',
-  express.static(path.join(__dirname, 'services', 'invoices'))
-);
+// Agora serve exatamente a pasta raiz "/invoices"
+const invoicesStatic = path.join(__dirname, '..', 'invoices');
+console.log('Servindo faturas de:', invoicesStatic);
+app.use('/invoices', express.static(invoicesStatic));
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Servidor rodando na porta ${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Servidor na porta ${PORT}`));
