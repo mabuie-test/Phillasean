@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Painel Admin | PHIL ASEAN</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Só para este painel */
+    .admin-controls { display: flex; gap: 1rem; margin-bottom: 1rem; }
+    .admin-controls input, .admin-controls select, .admin-controls button {
+      padding: 0.5rem; font-size: 1rem;
+    }
+    #ordersTable, #auditTable {
+      width: 100%; border-collapse: collapse; margin-bottom: 2rem;
+    }
+    #ordersTable th, #ordersTable td,
+    #auditTable th, #auditTable td {
+      border:1px solid #ccc; padding:0.5rem; text-align:left;
+    }
+    #ordersTable th, #auditTable th { background: #0056b3; color: #fff; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Painel de Administração</h1>
+    <button id="logoutBtn">Logout</button>
+  </header>
+  <main class="container">
+    <!-- 1. Controles de filtro -->
+    <section class="admin-controls">
+      <select id="filterStatus">
+        <option value="">Todos os status</option>
+        <option value="pending">Pendente</option>
+        <option value="in_progress">Em Progresso</option>
+        <option value="completed">Concluído</option>
+      </select>
+      <input type="date" id="filterDateFrom" placeholder="De">
+      <input type="date" id="filterDateTo" placeholder="Até">
+      <button id="btnFilter">Filtrar</button>
+    </section>
+
+    <!-- 2. Tabela de Pedidos -->
+    <section>
+      <h2>Pedidos</h2>
+      <table id="ordersTable">
+        <thead>
+          <tr>
+            <th>ID</th><th>Cliente</th><th>Serviços</th><th>Data</th><th>Status</th><th>Fatura</th><th>Ações</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <!-- 3. Criar novo Admin -->
+    <section>
+      <h2>Criar Novo Admin</h2>
+      <form id="createAdminForm">
+        <input type="text" id="newAdminName" placeholder="Nome" required>
+        <input type="email" id="newAdminEmail" placeholder="Email" required>
+        <input type="password" id="newAdminPass" placeholder="Senha" required>
+        <button type="submit">Criar Admin</button>
+      </form>
+    </section>
+
+    <!-- 4. Logs de Auditoria -->
+    <section>
+      <h2>Logs de Auditoria</h2>
+      <table id="auditTable">
+        <thead>
+          <tr><th>Usuário</th><th>Ação</th><th>Timestamp</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+  </main>
+
+  <script src="admin.js" defer></script>
+</body>
+</html>
