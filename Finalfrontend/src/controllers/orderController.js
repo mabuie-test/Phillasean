@@ -68,7 +68,7 @@ export async function createOrder(req, res) {
 
     // email para admin
     await sendOrderNotification(
-      'Jorgemaabuie@gmail.com,
+      'Jorgemaabuie@gmail.com',
       'Nova solicitação recebida',
       `<p>Ordem <strong>#${order._id}</strong> criada por ${email}.</p>`
     );
