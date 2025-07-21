@@ -21,6 +21,32 @@
     #ordersTable th, #auditTable th { background: #0056b3; color: #fff; }
   </style>
 </head>
+  <script>
+  (function() {
+    const token = localStorage.getItem('phil_token');
+    if (!token) {
+      // não autenticado
+      return window.location.href = 'login.html';
+    }
+    // decodifica o role
+    function parseJwt(t) {
+      try {
+        const p = t.split('.')[1];
+        const d = atob(p.replace(/-/g, '+').replace(/_/g, '/'));
+        return JSON.parse(decodeURIComponent(
+          d.split('').map(c=> '%' + ('00'+c.charCodeAt(0).toString(16)).slice(-2)).join('')
+        ));
+      } catch { return {}; }
+    }
+    const { role } = parseJwt(token);
+    if (role !== 'admin') {
+      // usuário comum não pode ver o painel
+      return window.location.href = 'reserva.html';
+    }
+    // caso admin, deixa seguir o carregamento normal
+  })();
+</script>
+
 <body>
   <header>
     <h1>Painel de Administração</h1>
