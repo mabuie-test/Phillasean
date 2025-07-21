@@ -44,9 +44,8 @@ export async function createOrder(req, res) {
     order.invoice = invoice._id;
     await order.save();
 
-    // **AQUI**: apenas o nome do arquivo
+    // gera PDF (passa só o nome do arquivo)
     const pdfFilename = `${invoiceNumber}.pdf`;
-    // injeta dados de ordem + fatura no PDF
     await generateInvoicePDF(
       { invoice: invoice.toObject(), order: order.toObject() },
       pdfFilename
@@ -55,24 +54,24 @@ export async function createOrder(req, res) {
     invoice.filename = pdfFilename;
     await invoice.save();
 
-    // envia email ao cliente com nota de progresso
+    // envia email ao cliente
     await sendOrderNotification(
       email,
       'Sua solicitação foi recebida',
       `<p>Olá ${name},</p>
        <p>Sua solicitação foi recebida e a fatura <strong>${invoiceNumber}</strong> foi gerada.</p>
        <p>Verifique o progresso do status da fatura; em breve será processada e entraremos em contato.</p>`,
-      // anexa o PDF gerado lá em src/services/invoices
-      path.join('invoices', pdfFilename)
+      pdfFilename
     );
 
-    // email para admin
+    // envia email ao admin
     await sendOrderNotification(
       'Jorgemaabuie@gmail.com',
       'Nova solicitação recebida',
       `<p>Ordem <strong>#${order._id}</strong> criada por ${email}.</p>`
     );
 
+    // log de auditoria
     await AuditLog.create({
       user: req.user.id,
       action: `Created order ${order._id}`,
@@ -85,5 +84,20 @@ export async function createOrder(req, res) {
   } catch (err) {
     console.error('Erro no createOrder:', err);
     return res.status(500).json({ message: 'Erro interno ao criar ordem.' });
+  }
+}
+
+// GET /api/orders
+export async function getMyOrders(req, res) {
+  try {
+    const orders = await Order
+      .find({ client: req.user.id })
+      .sort({ createdAt: -1 })
+      .populate('invoice')
+      .lean();
+    return res.json(orders);
+  } catch (err) {
+    console.error('Erro no getMyOrders:', err);
+    return res.status(500).json({ message: 'Erro interno ao buscar ordens.' });
   }
 }
