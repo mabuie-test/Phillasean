@@ -4,234 +4,184 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Painel Admin | PHIL ASEAN</title>
+
+  <!-- Seu CSS base -->
   <link rel="stylesheet" href="styles.css">
-  <link rel="stylesheet" href="admin.css">
-  
-    
- <style>
-    :root {
-      --primary: #0056b3;
-      --success: #28a745;
-      --accent: #ffc107;
-      --dark: #212529;
-      --light: #f8f9fa;
-      --error: #dc3545;
-    }
-    *, *::before, *::after { box-sizing: border-box; }
+
+  <!-- CSS específico do painel admin -->
+  <style>
+    /* Reset básico */
+    * { margin:0; padding:0; box-sizing:border-box; }
+
     body {
-      margin: 0;
       font-family: Arial, sans-serif;
-      background: var(--light);
-      color: var(--dark);
+      background: #f8f9fa;
+      color: #333;
+      line-height: 1.4;
     }
-    .container {
-      width: 90%;
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 1rem 0;
-    }
+
     header {
+      background: #004080;
+      color: #fff;
+      padding: 1rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding-bottom: 1rem;
-      border-bottom: 2px solid var(--primary);
-      position: static !important;
-      background: #fff;
+      position: fixed;
+      top:0; left:0; right:0;
+      z-index:1000;
     }
     header h1 {
-      font-size: 1.75rem;
-      margin: 0;
+      font-size: 1.5rem;
     }
-    #logoutBtn {
-      background: var(--primary);
-      color: #fff;
+    header button {
+      background: #ff8c00;
       border: none;
       padding: 0.5rem 1rem;
+      color: #fff;
       border-radius: 4px;
       cursor: pointer;
     }
-    #controls {
+    header button:hover {
+      background: #e67600;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 100px auto 40px; /* espaço para header fixo */
+      padding: 0 1rem;
+    }
+
+    .admin-controls {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.5rem;
-      margin: 1rem 0;
+      gap: 1rem;
+      background: #fff;
+      padding: 1rem;
+      border-radius: 6px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+      margin-bottom: 1.5rem;
+      align-items: flex-end;
     }
-    #controls input,
-    #controls select,
-    #controls button {
+    .admin-controls select,
+    .admin-controls input {
       padding: 0.5rem;
-      font-size: 1rem;
       border: 1px solid #ccc;
       border-radius: 4px;
+      flex: 1 1 150px;
     }
-    #controls button {
-      background: var(--primary);
+    .admin-controls button {
+      background: #0056b3;
       color: #fff;
       border: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: 4px;
       cursor: pointer;
     }
+    .admin-controls button:hover {
+      background: #004080;
+    }
+
+    section {
+      margin-bottom: 2rem;
+    }
+    section h2 {
+      margin-bottom: 1rem;
+      color: #004080;
+      font-size: 1.25rem;
+    }
+
     .table-responsive {
       overflow-x: auto;
-      margin-bottom: 2rem;
     }
     table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 600px;
+      background: #fff;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
     }
     th, td {
       padding: 0.75rem;
-      border: 1px solid #ccc;
+      border: 1px solid #ddd;
       text-align: left;
-      vertical-align: top;
+      font-size: 0.9rem;
     }
     th {
-      background: var(--primary);
+      background: #0056b3;
       color: #fff;
     }
-    .status-cell.pending    { color: var(--error); }
-    .status-cell.in_progress{ color: var(--accent); }
-    .status-cell.completed  { color: var(--success); }
-    .history-list {
-      list-style: none;
-      padding-left: 0;
-      margin: 0;
-      font-size: 0.85rem;
-      color: #333;
+    tr:nth-child(even) {
+      background: #f1f1f1;
     }
-    .history-list li {
-      margin-bottom: 0.25rem;
-    }
-    .btn-update,
-    .btn-download,
-    .btn {
-      padding: 0.4rem 0.8rem;
-      font-size: 0.9rem;
+
+    .statusSelect {
+      padding: 0.3rem;
       border-radius: 4px;
+      border: 1px solid #ccc;
+      font-size: 0.85rem;
+    }
+    .btn-update {
+      background: #28a745;
+      color: #fff;
       border: none;
+      padding: 0.4rem 0.8rem;
+      border-radius: 4px;
       cursor: pointer;
-      margin-top: 0.5rem;
+      font-size: 0.85rem;
     }
-    .btn-update { background: var(--success); color: #fff; }
-    .btn-download { background: var(--accent); color: #fff; }
-    /* Gestão de Admins */
-    #user-management {
-      margin-top: 2rem;
-      padding-top: 1rem;
-      border-top: 2px solid var(--primary);
+    .btn-update:hover {
+      background: #218838;
     }
-    #user-management h2 {
-      margin-bottom: 1rem;
-      font-size: 1.5rem;
-      color: var(--primary);
-    }
+
     #createAdminForm {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      margin-bottom: 1rem;
+      background: #fff;
+      padding: 1rem;
+      border-radius: 6px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
     }
     #createAdminForm input {
-      flex: 1 1 200px;
+      width: 100%;
       padding: 0.5rem;
-      font-size: 1rem;
+      margin-bottom: 0.75rem;
       border: 1px solid #ccc;
       border-radius: 4px;
     }
-    #createAdminForm .btn {
-      background: var(--primary);
+    #createAdminForm button {
+      background: #ff8c00;
       color: #fff;
-    }
-    #adminList {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-    #adminList li {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0.5rem;
-      background: #fff;
-      border: 1px solid #ddd;
+      border: none;
+      padding: 0.6rem 1.2rem;
       border-radius: 4px;
-      margin-bottom: 0.5rem;
+      cursor: pointer;
     }
-    /* Auditoria */
-    #audit-log {
-      margin-top: 2rem;
-      padding-top: 1rem;
-      border-top: 2px solid var(--primary);
+    #createAdminForm button:hover {
+      background: #e67600;
     }
-    #audit-log h2 {
-      font-size: 1.5rem;
-      margin-bottom: 1rem;
-      color: var(--primary);
-    }
-    #auditList {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-      max-height: 300px;
-      overflow-y: auto;
-      border: 1px solid #ccc;
-      background: #fff;
-      border-radius: 4px;
-    }
-    #auditList li {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0.5rem 1rem;
-      border-bottom: 1px solid #eee;
-      font-size: 0.9rem;
-      color: var(--dark);
-    }
-    #auditList li:nth-child(odd) { background: #fdfdfd; }
-    #auditList li:last-child { border-bottom: none; }
-    @media (max-width: 768px) {
-      #controls { flex-direction: column; }
-      #controls input, #controls select, #controls button { width: 100%; }
-      table { min-width: 100%; }
-      #createAdminForm { flex-direction: column; }
-      #createAdminForm input, #createAdminForm .btn { width: 100%; }
-      #adminList li, #auditList li { flex-direction: column; align-items: flex-start; }
+
+    /* Responsivo */
+    @media(max-width:768px) {
+      .admin-controls {
+        flex-direction: column;
+      }
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      header button {
+        margin-top: 0.5rem;
+      }
     }
   </style>
 </head>
-  <script>
-  (function() {
-    const token = localStorage.getItem('phil_token');
-    if (!token) {
-      // não autenticado
-      return window.location.href = 'login.html';
-    }
-    // decodifica o role
-    function parseJwt(t) {
-      try {
-        const p = t.split('.')[1];
-        const d = atob(p.replace(/-/g, '+').replace(/_/g, '/'));
-        return JSON.parse(decodeURIComponent(
-          d.split('').map(c=> '%' + ('00'+c.charCodeAt(0).toString(16)).slice(-2)).join('')
-        ));
-      } catch { return {}; }
-    }
-    const { role } = parseJwt(token);
-    if (role !== 'admin') {
-      // usuário comum não pode ver o painel
-      return window.location.href = 'reserva.html';
-    }
-    // caso admin, deixa seguir o carregamento normal
-  })();
-</script>
-
 <body>
+
   <header>
     <h1>Painel de Administração</h1>
     <button id="logoutBtn">Logout</button>
   </header>
+
   <main class="container">
+
     <!-- 1. Controles de filtro -->
     <section class="admin-controls">
       <select id="filterStatus">
@@ -248,14 +198,22 @@
     <!-- 2. Tabela de Pedidos -->
     <section>
       <h2>Pedidos</h2>
-      <table id="ordersTable">
-        <thead>
-          <tr>
-            <th>ID</th><th>Cliente</th><th>Serviços</th><th>Data</th><th>Status</th><th>Fatura</th><th>Ações</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+      <div class="table-responsive">
+        <table id="ordersTable">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Cliente</th>
+              <th>Serviços</th>
+              <th>Data</th>
+              <th>Status</th>
+              <th>Fatura</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
     </section>
 
     <!-- 3. Criar novo Admin -->
@@ -272,15 +230,44 @@
     <!-- 4. Logs de Auditoria -->
     <section>
       <h2>Logs de Auditoria</h2>
-      <table id="auditTable">
-        <thead>
-          <tr><th>Usuário</th><th>Ação</th><th>Timestamp</th></tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+      <div class="table-responsive">
+        <table id="auditTable">
+          <thead>
+            <tr>
+              <th>Usuário</th>
+              <th>Ação</th>
+              <th>Timestamp</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
     </section>
+
   </main>
 
+  <!-- Script de proteção e lógica -->
+  <script>
+    (function() {
+      const token = localStorage.getItem('phil_token');
+      if (!token) {
+        return window.location.href = 'login.html';
+      }
+      function parseJwt(t) {
+        try {
+          const p = t.split('.')[1];
+          const d = atob(p.replace(/-/g, '+').replace(/_/g, '/'));
+          return JSON.parse(decodeURIComponent(
+            d.split('').map(c=> '%' + ('00'+c.charCodeAt(0).toString(16)).slice(-2)).join('')
+          ));
+        } catch { return {}; }
+      }
+      const { role } = parseJwt(token);
+      if (role !== 'admin') {
+        return window.location.href = 'reserva.html';
+      }
+    })();
+  </script>
   <script src="admin.js" defer></script>
 </body>
 </html>
