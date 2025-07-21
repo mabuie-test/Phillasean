@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>PHIL ASEAN PROVIDER & LOGISTICS</title>
-  <link rel="icon" href="assets/phil.jpeg">
+  <title>PHIL ASEAN PROVIDER & LOGISTICS | Serviços Marítimos em Moçambique</title>
+  <link rel="icon" href="assets/phil.jpeg" type="image/jpeg">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -13,7 +13,7 @@
   <header>
     <div class="header-container">
       <a href="index.html" class="logo">
-        <img src="assets/phil.jpeg" alt="PHIL ASEAN">
+        <img src="assets/phil.jpeg" alt="PHIL ASEAN" id="logo-img">
         <span>PHIL ASEAN</span>
       </a>
       <button class="mobile-menu-btn" id="mobileMenuBtn">
@@ -37,16 +37,211 @@
     </div>
   </header>
 
-  <!-- Conteúdo de Exemplo -->
-  <main>
-    <section class="hero">
-      <div class="hero-content">
-        <h1>Bem‑vindo à PHIL ASEAN</h1>
-        <p>Serviços Marítimos em Moçambique</p>
+  <!-- Hero Section -->
+  <section class="hero" id="home">
+    <video autoplay muted loop playsinline class="hero-video">
+      <source src="assets/phi.mp4" type="video/mp4">
+    </video>
+    <div class="hero-content container">
+      <h1>Serviços Premium de Abastecimento Naval em Moçambique</h1>
+      <p>Seu parceiro confiável em logística marítima e provisões para embarcações ao longo de toda a costa moçambicana.</p>
+      <a href="#order" class="btn">Solicitar Serviço</a>
+      <a href="#contact" class="btn btn-outline">Contate‑nos</a>
+    </div>
+  </section>
+
+  <!-- Services Section -->
+  <section class="section" id="services">
+    <div class="container">
+      <div class="section-title">
+        <h2>Nossos Serviços em Moçambique</h2>
       </div>
-    </section>
-    <!-- … Demais seções aqui … -->
-  </main>
+      <div class="services-grid">
+        <!-- Tubos Hidráulicos -->
+        <div class="service-card">
+          <div class="service-img">
+            <img src="assets/tubo.jpeg" alt="Tubos Hidráulicos">
+          </div>
+          <div class="service-content">
+            <h3>Tubos Hidráulicos</h3>
+            <p>Fornecemos tubos hidráulicos de alta resistência, ideais para aplicações marítimas e industriais.</p>
+            <a href="#order" class="btn">Solicitar</a>
+          </div>
+        </div>
+        <!-- Água Potável -->
+        <div class="service-card">
+          <div class="service-img">
+            <img src="assets/agua.jpeg" alt="Água Potável">
+          </div>
+          <div class="service-content">
+            <h3>Água Potável</h3>
+            <p>Entrega de água limpa em sua embarcação, conforme padrões internacionais.</p>
+            <a href="#order" class="btn">Solicitar</a>
+          </div>
+        </div>
+        <!-- Coleta de Resíduos -->
+        <div class="service-card">
+          <div class="service-img">
+            <img src="assets/llixo.jpeg" alt="Garbage Collector">
+          </div>
+          <div class="service-content">
+            <h3>Coleta de Resíduos</h3>
+            <p>Gerenciamento adequado de resíduos sólidos e líquidos gerados a bordo.</p>
+            <a href="#order" class="btn">Solicitar</a>
+          </div>
+        </div>
+        <!-- Provisões e Mantimentos -->
+        <div class="service-card">
+          <div class="service-img">
+            <img src="assets/alimento.jpeg" alt="Provisões e Mantimentos">
+          </div>
+          <div class="service-content">
+            <h3>Provisões e Mantimentos</h3>
+            <p>Provisões frescas e dry goods entregues diretamente em sua embarcação.</p>
+            <a href="#order" class="btn">Solicitar</a>
+          </div>
+        </div>
+        <!-- Lubrificantes Marítimos -->
+        <div class="service-card">
+          <div class="service-img">
+            <img src="assets/ole.jpeg" alt="Lubrificantes Marítimos">
+          </div>
+          <div class="service-content">
+            <h3>Lubrificantes Marítimos</h3>
+            <p>Lubrificantes de alta performance para motores e equipamentos náuticos.</p>
+            <a href="#order" class="btn">Solicitar</a>
+          </div>
+        </div>
+        <!-- Transporte Offshore -->
+        <div class="service-card">
+          <div class="service-img">
+            <img src="assets/PH1.jpg" alt="Transporte Offshore">
+          </div>
+          <div class="service-content">
+            <h3>Transporte Offshore</h3>
+            <p>Logística completa para operações offshore com segurança e eficiência.</p>
+            <a href="#order" class="btn">Solicitar</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- About Section -->
+  <section class="section about" id="about">
+    <div class="container about-content">
+      <div class="about-text">
+        <h2>Sobre Nossas Operações</h2>
+        <p>Desde 2010, atendemos embarcações em Maputo, Beira, Nacala, Pemba e Quelimane 24/7, com agilidade e conformidade regulatória.</p>
+        <p>Expertise em normas alfandegárias e relacionamento com autoridades para operações sem entraves.</p>
+      </div>
+      <div class="about-img">
+        <img src="assets/IMG_8120.JPG" alt="Costa Moçambicana">
+      </div>
+    </div>
+  </section>
+
+  <!-- Order Section -->
+  <section class="section order" id="order">
+    <div class="container">
+      <div class="section-title">
+        <h2>Faça Seu Pedido</h2>
+      </div>
+      <form id="orderForm">
+        <div class="form-group">
+          <label for="name">Nome Completo</label>
+          <input id="name" name="name" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label for="company">Empresa</label>
+          <input id="company" name="company" class="form-control">
+        </div>
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label for="phone">Telefone</label>
+          <input id="phone" name="phone" type="tel" class="form-control">
+        </div>
+        <div class="form-group">
+          <label for="vessel">Navio</label>
+          <input id="vessel" name="vessel" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label for="port">Porto</label>
+          <select id="port" name="port" class="form-control" required>
+            <option value="">Selecione…</option>
+            <option>Maputo</option>
+            <option>Beira</option>
+            <option>Nacala</option>
+            <option>Pemba</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="date">Data Estimada</label>
+          <input id="date" name="date" type="date" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label for="services">Serviços</label>
+          <textarea id="services" name="services" class="form-control" placeholder="Separe por vírgula"></textarea>
+        </div>
+        <div class="form-group">
+          <label for="notes">Observações</label>
+          <textarea id="notes" name="notes" class="form-control"></textarea>
+        </div>
+        <button type="submit" class="btn submit-btn">Enviar Pedido</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- Contact Section -->
+  <section class="section" id="contact">
+    <div class="container">
+      <div class="section-title">
+        <h2>Contate‑nos</h2>
+      </div>
+      <div class="contact-info">
+        <div class="contact-card">
+          <i class="fas fa-map-marker-alt"></i>
+          <h3>Localização</h3>
+          <p>Porto de Maputo, Moçambique</p>
+        </div>
+        <div class="contact-card">
+          <i class="fas fa-phone-alt"></i>
+          <h3>Telefone</h3>
+          <p>+258 878979532</p>
+        </div>
+        <div class="contact-card">
+          <i class="fas fa-envelope"></i>
+          <h3>Email</h3>
+          <p>philasean@philaseanprovider.co.mz</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container footer-content">
+      <div class="footer-col">
+        <h3>PHIL ASEAN MOÇAMBIQUE</h3>
+        <p>Parceria confiável em serviços marítimos desde 2010.</p>
+      </div>
+      <div class="footer-col">
+        <h3>Links Rápidos</h3>
+        <ul class="footer-links">
+          <li><a href="#services">Serviços</a></li>
+          <li><a href="#about">Sobre</a></li>
+          <li><a href="#order">Pedido</a></li>
+          <li><a href="#contact">Contato</a></li>
+        </ul>
+      </div>
+    </div>
+    <p style="text-align:center; padding:1rem 0; background:#eaeaea; margin:0;">
+      © 2025 PHIL ASEAN PROVIDER & LOGISTICS. Todos os direitos reservados.
+    </p>
+  </footer>
 
   <!-- Modal de Autenticação -->
   <div class="modal" id="authModal">
