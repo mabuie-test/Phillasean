@@ -8,6 +8,31 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="styles.css">
 </head>
+<script>
+  (function(){
+    const token = localStorage.getItem('phil_token');
+    if (!token) {
+      return window.location.href = 'login.html';
+    }
+    function parseJwt(t) {
+      try {
+        const p = t.split('.')[1];
+        const d = atob(p.replace(/-/g, '+').replace(/_/g, '/'));
+        return JSON.parse(decodeURIComponent(
+          d.split('').map(c=> '%' + ('00'+c.charCodeAt(0).toString(16)).slice(-2)).join('')
+        ));
+      } catch { return {}; }
+    }
+    const { role } = parseJwt(token);
+    if (role === 'admin') {
+      // se admin tentar acessar área cliente, manda pro painel
+      return window.location.href = 'admin.html';
+    }
+    // usuário normal segue normalmente
+  })();
+</script>
+
+  
 <body>
 
   <!-- Header -->
