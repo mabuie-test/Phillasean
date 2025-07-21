@@ -1,0 +1,135 @@
+/* admin.css */
+
+/* Container principal */
+.admin-container {
+  max-width: 1200px;
+  margin: 100px auto 40px;
+  padding: 0 1rem;
+}
+
+/* Título */
+.admin-header h1 {
+  font-size: 1.75rem;
+  color: #004080;
+  margin-bottom: 0.5rem;
+}
+.admin-header p {
+  color: #666;
+  margin-bottom: 1.5rem;
+}
+
+/* Formulário de filtro */
+.filter-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.filter-form label { font-weight: 500; }
+.filter-form select,
+.filter-form input {
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+.filter-form button {
+  background: #0056b3;
+  color: #fff;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.filter-form button:hover {
+  background: #004080;
+}
+
+/* Tabelas responsivas */
+.table-responsive {
+  overflow-x: auto;
+  margin-bottom: 2rem;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+th, td {
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #ddd;
+  text-align: left;
+}
+th {
+  background: #0056b3;
+  color: #fff;
+}
+tr:nth-child(even) {
+  background: #f1f1f1;
+}
+
+/* Select de status e botões */
+.statusSelect {
+  padding: 0.3rem;
+  font-size: 0.85rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+.btn-update {
+  background: #28a745;
+  color: #fff;
+  border: none;
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.btn-update:hover {
+  background: #218838;
+}
+
+/* Formulário de criação de admin */
+#createAdminForm {
+  background: #fff;
+  padding: 1rem;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  margin-bottom: 2rem;
+}
+#createAdminForm h2 {
+  margin-bottom: 1rem;
+  color: #004080;
+}
+#createAdminForm .form-group {
+  margin-bottom: 1rem;
+}
+#createAdminForm input {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+#createAdminForm button {
+  background: #ff8c00;
+  color: #fff;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+#createAdminForm button:hover {
+  background: #e67600;
+}
+
+/* Ajustes no header fixo */
+header {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  background: #004080;
+  padding: 0.75rem 1rem;
+  z-index: 1000;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+header .logo a {
+  color: #fff;
+  font-size: 1.25rem;
+  text-decoration: none;
+}
