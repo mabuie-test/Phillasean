@@ -31,6 +31,24 @@ async function apiFetch(path, opts = {}) {
   return json;
 }
 
+// ── JWT Payload Helper ────────────────────────────────────────────────────
+/**
+ * Decodifica o payload de um JWT e retorna o objeto.
+ */
+function parseJwt(token) {
+  try {
+    const payload = token.split('.')[1];
+    const decoded = atob(payload.replace(/-/g, '+').replace(/_/g, '/'));
+    return JSON.parse(decodeURIComponent(
+      decoded.split('')
+             .map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+             .join('')
+    ));
+  } catch {
+    return {};
+  }
+}
+
 // ── Mobile Menu Toggle ────────────────────────────────────────────────────
 const mobileBtn = document.getElementById('mobileMenuBtn');
 const mainMenu  = document.getElementById('main-menu');
@@ -40,16 +58,27 @@ if (mobileBtn && mainMenu) {
   });
 }
 
-// ── Dropdown “Conta” ──────────────────────────────────────────────────────
+// ── Dropdown “Conta” & Admin Link ─────────────────────────────────────────
 const accountBtn  = document.getElementById('accountBtn');
 const accountMenu = document.getElementById('accountMenu');
 function updateAccountMenu() {
-  const logged = !!localStorage.getItem(authTokenKey);
+  const token  = localStorage.getItem(authTokenKey);
+  const logged = !!token;
+
+  // Itens para visitantes (guest)
   document.querySelectorAll('#accountMenu .guest')
     .forEach(el => el.style.display = logged ? 'none' : '');
+  // Itens para usuários logados (user)
   document.querySelectorAll('#accountMenu .user')
     .forEach(el => el.style.display = logged ? '' : 'none');
+
+  // Itens exclusivos para admin
+  const { role } = parseJwt(token || '');
+  const isAdmin  = role === 'admin';
+  document.querySelectorAll('.admin-only')
+    .forEach(el => el.style.display = isAdmin ? '' : 'none');
 }
+
 if (accountBtn && accountMenu) {
   accountBtn.addEventListener('click', e => {
     e.preventDefault();
