@@ -7,6 +7,34 @@
   <link rel="icon" href="assets/phil.jpeg">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="styles.css">
+
+  <!-- Protege a página: se já estiver logado, redireciona -->
+  <script>
+    (function() {
+      const token = localStorage.getItem('phil_token');
+      if (!token) return;
+      // Decodifica payload
+      function parseJwt(t) {
+        try {
+          const p = t.split('.')[1];
+          const d = atob(p.replace(/-/g,'+').replace(/_/g,'/'));
+          return JSON.parse(decodeURIComponent(
+            d.split('').map(c=>
+              '%' + ('00'+c.charCodeAt(0).toString(16)).slice(-2)
+            ).join('')
+          ));
+        } catch {
+          return {};
+        }
+      }
+      const { role } = parseJwt(token);
+      if (role === 'admin') {
+        window.location.replace('admin.html');
+      } else {
+        window.location.replace('reserva.html');
+      }
+    })();
+  </script>
 </head>
 <body>
 
@@ -59,7 +87,7 @@
     </div>
   </main>
 
+  <!-- Seu JavaScript de controle -->
   <script src="script.js" defer></script>
-
 </body>
 </html>
