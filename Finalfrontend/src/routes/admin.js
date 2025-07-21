@@ -1,17 +1,34 @@
 // src/routes/admin.js
 import express from 'express';
-import { listInvoices, createAdmin, getAuditLogs } from '../controllers/adminController.js';
-// Removido temporariamente: autenticação e autorização
+import {
+  listInvoices,
+  updateOrderStatus,
+  listAdmins,
+  createAdmin,
+  getAuditLogs
+} from '../controllers/adminController.js';
+// Se quiser proteger:
 import { authMiddleware } from '../middlewares/auth.js';
 import { roleMiddleware } from '../middlewares/roles.js';
 
 const router = express.Router();
 
-// Descomente estas linhas para reabilitar proteção:
- router.use(authMiddleware, roleMiddleware('admin'));
+// Para reabilitar proteção, descomente a linha abaixo:
+router.use(authMiddleware, roleMiddleware('admin'));
 
+// Listar faturas (com filtros opcionais)
 router.get('/invoices', listInvoices);
-router.post('/admins',   createAdmin);
-router.get('/audit',     getAuditLogs);
+
+// Atualizar status de uma ordem/fatura
+router.put('/invoices/:orderId', updateOrderStatus);
+
+// Listar todos os admins
+router.get('/admins', listAdmins);
+
+// Criar novo admin
+router.post('/admins', createAdmin);
+
+// Logs de auditoria
+router.get('/audit', getAuditLogs);
 
 export default router;
