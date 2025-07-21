@@ -9,80 +9,138 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <!-- Navbar (mesma do index.html) -->
-  <nav class="navbar">
-    <div class="logo">
-      <a href="index.html">
-        <img src="assets/phil.jpeg" alt="PHIL ASEAN" style="height:40px; vertical-align:middle;">
-        PHIL ASEAN
-      </a>
-    </div>
-    <ul class="nav-links">
-      <li><a href="index.html">Home</a></li>
-      <li><a href="reserva.html">Reservas</a></li>
-      <li class="dropdown">
-        <a href="#" id="accountBtn">Conta ▾</a>
-        <ul class="dropdown-menu" id="accountMenu">
-          <li><a href="#" id="loginBtn">Login</a></li>
-          <li><a href="#" id="registerBtn">Registar</a></li>
-          <li><a href="#" id="clientAreaBtn">Área do Cliente</a></li>
-          <li><a href="#" id="logoutBtn" style="display:none;">Logout</a></li>
-        </ul>
-      </li>
-    </ul>
-  </nav>
 
-  <main style="padding-top:100px;">
-    <div class="section-title">
+  <!-- Header -->
+  <header>
+    <div class="container header-container">
+      <div class="logo">
+        <img src="assets/phil.jpeg" alt="Logo PHIL ASEAN" id="logo-img">
+        <span>PHIL ASEAN PROVIDER &amp; LOGISTICS</span>
+      </div>
+      <nav>
+        <button class="mobile-menu-btn" id="mobileMenuBtn">
+          <i class="fas fa-bars"></i>
+        </button>
+        <ul id="main-menu">
+          <li><a href="index.html"><i class="fas fa-home"></i> Início</a></li>
+          <li><a href="index.html#services"><i class="fas fa-ship"></i> Serviços</a></li>
+          <li><a href="index.html#about"><i class="fas fa-info-circle"></i> Sobre</a></li>
+          <li><a href="reserva.html"><i class="fas fa-clipboard-list"></i> Área Cliente</a></li>
+          <li><a href="index.html#contact"><i class="fas fa-envelope"></i> Contato</a></li>
+          <li>
+            <button id="logoutBtn">
+              <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main>
+    <div class="section-title" style="margin-top:100px;">
       <h2>Área do Cliente / Fazer Pedido</h2>
     </div>
 
-    <!-- Formulário de Pedido (original) :contentReference[oaicite:0]{index=0} -->
+    <!-- Formulário de Pedido -->
     <form id="orderForm">
-      <!-- campos nome, empresa, email, telefone, vessel, port, date, services, notes -->
+      <div class="form-group">
+        <label for="name">Nome Completo</label>
+        <input id="name" name="name" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label for="company">Empresa</label>
+        <input id="company" name="company" class="form-control">
+      </div>
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label for="phone">Telefone</label>
+        <input id="phone" name="phone" type="tel" class="form-control">
+      </div>
       <div class="form-group">
         <label for="vessel">Nome do Navio</label>
         <input id="vessel" name="vessel" class="form-control" required>
       </div>
-      <!-- ... demais campos ... -->
+      <div class="form-group">
+        <label for="port">Porto</label>
+        <select id="port" name="port" class="form-control" required>
+          <option value="">Selecione um porto…</option>
+          <option value="Maputo">Maputo</option>
+          <option value="Beira">Beira</option>
+          <option value="Nacala">Nacala</option>
+          <option value="Pemba">Pemba</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="date">Data Estimada</label>
+        <input id="date" name="date" type="date" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label for="services">Serviços Desejados</label>
+        <select id="services" name="services" multiple class="form-control" required>
+          <option value="Tubos Hidráulicos">Tubos Hidráulicos</option>
+          <option value="Fornecimento de Água Potável">Fornecimento de Água Potável</option>
+          <option value="Garbage Collector">Garbage Collector</option>
+          <option value="Provisões e Mantimentos">Provisões e Mantimentos</option>
+          <option value="Frutas Frescas 1">Frutas Frescas 1</option>
+          <option value="Frutas Frescas 2">Frutas Frescas 2</option>
+          <option value="Frutas Frescas 3">Frutas Frescas 3</option>
+          <option value="Frutas Frescas 4">Frutas Frescas 4</option>
+          <option value="Lubrificantes Marítimos">Lubrificantes Marítimos</option>
+          <option value="Transporte Offshore">Transporte Offshore</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="notes">Observações Adicionais</label>
+        <textarea id="notes" name="notes" class="form-control"></textarea>
+      </div>
       <button type="submit" class="submit-btn">Enviar Pedido</button>
     </form>
 
-    <!-- Histórico de Pedidos (original) :contentReference[oaicite:1]{index=1} -->
-    <section id="history">
-      <table id="historyTable" class="history-table">
-        <thead>
-          <tr>
-            <th>Data</th><th>Serviços</th><th>Status</th><th>Factura</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- preenchido por script.js -->
-        </tbody>
-      </table>
+    <!-- Histórico de Pedidos -->
+    <section class="section" id="history">
+      <div class="container">
+        <div class="section-title">
+          <h2>Histórico de Pedidos</h2>
+        </div>
+        <table id="historyTable" class="history-table">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Serviços</th>
+              <th>Status</th>
+              <th>Factura</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Linhas inseridas por script.js -->
+          </tbody>
+        </table>
+      </div>
     </section>
   </main>
 
-  <!-- Modal de Login / Register -->
-  <div class="modal" id="authModal" style="display:none;">
-    <div class="modal-content">
-      <span class="close" id="authClose">×</span>
-      <div id="registerForm" style="display:none;">
-        <h2>Registar</h2>
-        <input type="text" id="regName" placeholder="Nome" />
-        <input type="email" id="regEmail" placeholder="Email" />
-        <input type="password" id="regPassword" placeholder="Senha" />
-        <button id="registerSubmit">Registar</button>
-      </div>
-      <div id="loginForm">
-        <h2>Login</h2>
-        <input type="email" id="loginEmail" placeholder="Email" />
-        <input type="password" id="loginPassword" placeholder="Senha" />
-        <button id="loginSubmit">Entrar</button>
+  <!-- Footer -->
+  <footer>
+    <p>© 2025 PHIL ASEAN PROVIDER &amp; LOGISTICS. Todos os direitos reservados.</p>
+  </footer>
+
+  <!-- Dialog genérico -->
+  <div id="dialog-overlay" class="hidden">
+    <div id="dialog-box">
+      <div id="dialog-message"></div>
+      <div id="dialog-buttons">
+        <button id="dialog-ok">OK</button>
+        <button id="dialog-cancel" class="hidden">Cancelar</button>
       </div>
     </div>
   </div>
 
+  <!-- Scripts -->
   <script src="script.js" defer></script>
 </body>
 </html>
