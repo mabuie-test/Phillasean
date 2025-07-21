@@ -234,3 +234,68 @@ footer {
   .hero h2 { font-size: 2rem; }
   .hero p  { font-size: 0.9rem; }
 }
+/* 1) Garanta que o container do header sirva de referência */
+.header-container {
+  position: relative;
+}
+
+/* 2) Variável com a altura do header */
+:root {
+  --header-height: 60px; /* ajuste se o seu header for maior/menor */
+}
+
+/* 3) Espaço para o body não ficar sob o header */
+body {
+  padding-top: var(--header-height);
+}
+
+/* 4) Mobile (até 768px) */
+@media (max-width: 768px) {
+  /* a) mostra o botão hamburguer */
+  .mobile-menu-btn {
+    display: block;
+  }
+
+  /* b) esconde o nav por padrão */
+  .header-nav {
+    display: none;
+    position: absolute;      /* absoluto dentro do container */
+    top: var(--header-height);/* logo abaixo do header */
+    left: 0;                  /* alinhado à borda do container */
+    width: 100%;              /* ocupa 100% do container, não da viewport */
+    background: var(--primary);
+    flex-direction: column;
+    z-index: 999;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  }
+  /* c) mostra quando tiver .show */
+  .header-nav.show {
+    display: flex;
+  }
+
+  /* d) itens do menu ocupam largura completa do nav */
+  .header-nav li {
+    margin: 0;
+    border-top: 1px solid rgba(255,255,255,0.2);
+  }
+  .header-nav li:first-child {
+    border-top: none;
+  }
+  .header-nav a {
+    display: block;
+    padding: 1rem;
+    text-align: center;
+  }
+
+  /* e) dropdown Conta dentro do nav */
+  .auth-dropdown-content {
+    position: static;  /* remove absolute e leva como item do fluxo */
+    display: none;
+    box-shadow: none;
+    background: var(--light);
+    margin: 0;
+  }
+  .auth-dropdown-content.show {
+    display: block;
+  }
+}
