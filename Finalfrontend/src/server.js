@@ -2,6 +2,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { connectDB } from './config/db.js';
@@ -26,7 +27,14 @@ const __dirname  = path.dirname(__filename);
 
 // Agora serve exatamente a pasta raiz "/invoices"
 const invoicesStatic = path.join(__dirname, '..', 'invoices');
-console.log('Servindo faturas de:', invoicesStatic);
+console.log('📁 Servindo faturas de:', invoicesStatic);
+try {
+  const files = fs.readdirSync(invoicesStatic);
+  console.log('🔍 Conteúdo de invoices/:', files);
+} catch (err) {
+  console.error('⚠️ Erro ao listar invoices/:', err.message);
+}
+
 app.use('/invoices', express.static(invoicesStatic));
 
 const PORT = process.env.PORT || 5000;
